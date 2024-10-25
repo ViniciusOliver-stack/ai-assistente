@@ -37,11 +37,11 @@ export async function POST(req: Request) {
             where: { ownerId: user.id },
         });
 
-        console.log(userPlan.quota.teams)
-
         if (teamCount >= userPlan.quota.teams) {
             return NextResponse.json({ error: "Limite de equipes atingido para o seu plano" }, { status: 403 });
         }
+
+        console.log(name, description)
 
         const newTeam = await db.team.create({
             data: {
