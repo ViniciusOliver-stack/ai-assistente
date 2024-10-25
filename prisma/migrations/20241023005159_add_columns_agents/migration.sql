@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "Agent" ADD COLUMN     "limitToken" TEXT,
+ALTER COLUMN "title" DROP NOT NULL,
+ALTER COLUMN "description" DROP NOT NULL,
+ALTER COLUMN "enterprise" DROP NOT NULL,
+ALTER COLUMN "providerModel" DROP NOT NULL;

@@ -103,6 +103,8 @@ model Team {
   updatedAt   DateTime @updatedAt
 
   members TeamMember[]
+  agents  Agent[]
+  apiKeys ApiKey[]
 
   // Relacionar o time ao usuário dono
   ownerId String?
@@ -123,6 +125,29 @@ model TeamMember {
   @@unique([userId, teamId])
 }
 
+model Agent {
+  id          String  @id @default(cuid())
+  title       String?
+  description String?
+
+  enterprise    String?
+  providerModel String?
+
+  temperature        Float?
+  limitToken         Float?
+  restrictionContent Boolean?
+  languageDetector   Boolean?
+  prompt             String?
+
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId String
+
+  token   ApiKey? @relation(fields: [tokenId], references: [id])
+  tokenId String?
+
+  // @@unique([teamId])
+}
+
 model Plan {
   id                String   @id @default(cuid())
   name              String   @unique
@@ -133,4 +158,16 @@ model Plan {
   updatedAt         DateTime @updatedAt
 
   User User[]
+}
+
+model ApiKey {
+  id       String  @id @default(cuid())
+  key      String
+  provider String
+  teamId   String
+  team     Team    @relation(fields: [teamId], references: [id])
+  agents   Agent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
