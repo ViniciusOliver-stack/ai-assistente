@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { HomeIcon, SettingsIcon } from "lucide-react"
+import { HomeIcon, SettingsIcon, User } from "lucide-react"
 import Link from "next/link"
 
 import {
@@ -81,6 +81,16 @@ export default function Sidebar() {
             <User2 size={18} />
             Usuários
           </Link> */}
+
+          <Link
+            href="/agents"
+            className={`${
+              pathnameContains("/agents") ? "text-blue-500" : ""
+            } flex items-center gap-2 p-2 hover:bg-neutral-600 text-sm rounded-md`}
+          >
+            <User size={18} />
+            Agentes
+          </Link>
           <Link
             href="/config/profile"
             className={`${
