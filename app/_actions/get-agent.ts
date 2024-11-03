@@ -10,7 +10,8 @@ export async function getAgentById(id: string) {
 }
 
 // Função para atualizar um agente pelo ID
-export async function updateAgent(id: string, data: Partial<Agent>) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function updateAgent(id: string, data: any) {
   return await db.agent.update({
     where: { id },
     data,

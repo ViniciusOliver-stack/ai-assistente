@@ -8,6 +8,7 @@ export async function getPromptById(id: string) {
     })
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function updatePrompt(id: string, data: any) {
     const prompt = await db.agent.update({
         where: { id },

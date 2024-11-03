@@ -41,6 +41,7 @@ export async function getAgentById(id: string) {
   })
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function updateAgent(id: string, data: any) {
   try{
     const updatedAgent = await db.agent.update({
