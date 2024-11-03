@@ -68,7 +68,7 @@ export default function Sidebar() {
 
         <nav>
           <Link
-            href="/app"
+            href="/dashboard"
             className="flex items-center gap-2 p-2 hover:bg-neutral-600 text-sm rounded-md"
           >
             <HomeIcon size={18} />
