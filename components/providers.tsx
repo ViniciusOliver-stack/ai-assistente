@@ -3,7 +3,6 @@
 import { SessionProvider } from "next-auth/react"
 import { usePathname } from "next/navigation"
 import Sidebar from "./sidebar"
-import { Header } from "./header"
 
 const Provider = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname()
