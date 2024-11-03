@@ -22,7 +22,7 @@ export async function SaveApiKeys(selectedTeamId: string, provider: string, apiK
 
         return newApiKey
     } catch (error) {
-        console.error('Erro ao salvar a chave de API: ', error.message, error.stack)
+        console.error('Erro ao salvar a chave de API: ', error)
         throw new Error("Não foi possível salvar a chave de API")
     }
 
