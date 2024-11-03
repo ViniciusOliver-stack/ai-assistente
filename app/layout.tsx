@@ -3,6 +3,7 @@ import "./globals.css"
 import Provider from "@/components/providers"
 import { Toaster } from "@/components/ui/toaster"
 import { Poppins } from "next/font/google"
+import { WebSocketProvider } from "./context/WebSocketContext"
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -25,7 +26,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${poppins.className} antialiased`}>
         <Toaster />
-        <Provider>{children}</Provider>
+        <WebSocketProvider>
+          <Provider>{children}</Provider>
+        </WebSocketProvider>
       </body>
     </html>
   )
