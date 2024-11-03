@@ -26,7 +26,7 @@ interface ModelGroqCloudProps {
 export function ModelGroqCloud({ selectedAI }: ModelGroqCloudProps) {
   const [temperature, setTemperature] = useState<number>(1.5)
   const [tokenLimit, setTokenLimit] = useState<number>(1024)
-  const [models, setModels] = useState<ModelListResponse[]>([])
+  const [models, setModels] = useState<ModelListResponse["data"]>([])
   const [selectedModel, setSelectedModel] = useState<string | undefined>(
     undefined
   )
