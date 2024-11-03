@@ -25,7 +25,7 @@ export const GroqAI = async (content: string, agentId: string) => {
 
   const enhancedPromptSystem = `
   ${agent.prompt}
-  Lembre-se: suas respostas devem ser curtas, diretas e sem detalhes excessivos. Responda de forma objetiva.
+  Lembre-se: suas respostas devem ser curtas, diretas e sem detalhes excessivos. Responda de forma objetiva e seguindo padrão de ortografia.
   `
 
   const response = await groq.chat.completions.create({
