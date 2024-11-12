@@ -6,11 +6,11 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
     const data = await req.json()
 
-    const session = await getServerSession(authOptions)
+    // const session = await getServerSession(authOptions)
 
-    if(req.method !== "POST" || !session?.user) {
-        return NextResponse.json({ error: "Ops, verifique novamente a requisição" }, { status: 400 });
-    }
+    // if(req.method !== "POST" || !session?.user) {
+    //     return NextResponse.json({ error: "Ops, verifique novamente a requisição" }, { status: 400 });
+    // }
 
     try {
         const chatCompletion = await GroqAI(data.content, data.agentId) 

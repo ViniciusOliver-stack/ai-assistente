@@ -3,7 +3,7 @@ import { useState } from "react"
 export function GroqChat() {
   const [isLoading, setLoading] = useState(false)
   const [aiResponse, setAiResponse] = useState("")
-  const agentId = "cm2mka1xy0000y2syxg2mscgy"
+  const agentId = "cm326wkzr0001ph44fr0uqiqa"
 
   const handleSubmit = async (event) => {
     event?.preventDefault()

@@ -40,46 +40,45 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   handleAIResponse: async (clientMessageText, agentId) => {
     try {
       // Gera resposta da IA
-      const response = await fetch("/api/groq", {
+      const response = await fetch("/api/send-ai-response", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ content: clientMessageText, agentId: "cm2s14tjg0001am7u7825p6wi" }),
+        body: JSON.stringify({ clientMessageText, agentId: "cm326wkzr0001ph44fr0uqiqa" }),
       })
 
       const data = await response.json()
       const aiMessage: Message = {
         id: get().messages.length + 2,
-        text: data.content,
-        sender: "ai",
+        text: data.text,
+        sender: data.sender,
       }
-
       // Adiciona mensagem ao estado
       get().addMessage(aiMessage)
 
       // Envia resposta via API externa
-      await fetch(
-        "https://symplus-evolution.3g77fw.easypanel.host/message/sendText/SymplusTalk",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ",
-          },
-          body: JSON.stringify({
-            number: "5577988633518",
-            options: {
-              delay: 1200,
-              presence: "composing",
-              linkPreview: true,
-            },
-            textMessage: {
-              text: aiMessage.text,
-            },
-          }),
-        }
-      )
+      // await fetch(
+      //   "https://symplus-evolution.3g77fw.easypanel.host/message/sendText/SymplusTalk",
+      //   {
+      //     method: "POST",
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //       apikey: "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ",
+      //     },
+      //     body: JSON.stringify({
+      //       number: "5577988633518",
+      //       options: {
+      //         delay: 1200,
+      //         presence: "composing",
+      //         linkPreview: true,
+      //       },
+      //       textMessage: {
+      //         text: aiMessage.text,
+      //       },
+      //     }),
+      //   }
+      // )
     } catch (error) {
       console.error("Erro ao processar a resposta da IA:", error)
     }
