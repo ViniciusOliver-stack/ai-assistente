@@ -24,6 +24,7 @@ import { getTeams } from "@/app/_actions/get-teams"
 import { useEffect, useState } from "react"
 import { Team } from "@prisma/client"
 import useTeamStore from "@/store/team-store"
+import Image from "next/image"
 
 export default function Sidebar() {
   const { data: session } = useSession()
@@ -51,6 +52,9 @@ export default function Sidebar() {
   return (
     <aside className="w-64 shadow-md hidden md:flex px-3 py-5 flex-col justify-between">
       <div>
+        <div className="h-12">
+          <Image src="/logo.svg" alt="logo" width={120} height={120} />
+        </div>
         <div className="pb-5">
           <Select onValueChange={(value) => setSelectedTeamId(value)}>
             <SelectTrigger>
