@@ -67,6 +67,7 @@ export const createCheckoutSession = async (
     
     const userStripeSubscriptionId = user?.stripeSubscriptionId;
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const subscription = await stripe.subscriptionItems.list({
       subscription: userStripeSubscriptionId as string,
       limit: 1,

@@ -1,18 +1,20 @@
+import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { getSession } from "next-auth/react";
-import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: Request, {params}: {params: {id: string}}) {
-    const session = await getSession({req})
-
-    if(!session || !session.user) {
-        return Response.json({error: "Usuário não autenticado"}, {status: 401})
-    }
-
-    const {id} = params
-    const {userId, role} = await req.json()
-
+export async function POST(req: NextRequest, {params}: {params: {id: string}}) {
     try{
+
+        const session = await getServerSession(authOptions);
+
+        if(!session?.user) {
+            return Response.json({error: "Usuário não autenticado"}, {status: 401})
+        }
+    
+        const {id} = params
+        const {userId, role} = await req.json()
+
         const teamMember = await db.teamMember.findFirst({
             where: {
                 teamId: id,
@@ -56,16 +58,17 @@ export async function POST(req: Request, {params}: {params: {id: string}}) {
     }
 }
 
-export async function DELETE(req: Request, {params}: {params: {id: string}}) {
-    const session = await getSession({ req });
-
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-  
-    const { id, userId } = params;
-
+export async function DELETE(req: NextRequest, {params}: {params: {id: string}}) {
     try {
+        const session = await getServerSession(authOptions);
+
+        if (!session?.user) {
+          return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+      
+        const { id } = params;
+        const { userId } = await req.json(); // Pegando userId do body ao invés dos params
+
         //Verifica se o usuário que está removendo é ADM
 
         const teamMember = await db.teamMember.findFirst({

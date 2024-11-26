@@ -3,5 +3,6 @@ export interface Message {
     text: string
     sender: "client" | "ai" | string
     timestamp: string
+    messageTo?: string | null;
   }
   

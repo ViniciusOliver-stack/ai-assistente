@@ -11,7 +11,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
   const socketRef = useRef<Socket | null>(null)
   const { addMessage, formatMessage, isAIEnabled, currentChatId } =
     useChatStore()
-  const { updateLastMessage } = useChatListStore()
+  const { updateLastMessage, addOrUpdateChat } = useChatListStore()
 
   useEffect(() => {
     socketRef.current = io("http://localhost:3001", {
@@ -24,32 +24,60 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
     socketRef.current.on("new_message", (messageData) => {
       console.log("Nova mensagem recebida:", messageData)
-      const formattedMessage = formatMessage(messageData)
+
+      // Formata a mensagem do usuário
+      const formattedMessage = formatMessage({
+        id: messageData.id,
+        text: messageData.text,
+        sender: messageData.sender, // número do telefone do usuário
+        timestamp: messageData.timestamp,
+        messageTo: null, // mensagem do usuário não tem destinatário
+      })
+
+      // Adiciona a mensagem ao chat
       addMessage(formattedMessage)
 
-      // Atualiza a lista de chats apenas para mensagens de usuário
-      if (messageData.sender !== "ai") {
-        updateLastMessage(
-          messageData.sender,
-          messageData.text,
-          messageData.timestamp || new Date().toISOString(),
-          false // não é mensagem da IA
-        )
-      }
+      // Atualiza a lista de chats
+      addOrUpdateChat({
+        id: messageData.sender, // usa o número do telefone como ID
+        name: messageData.sender,
+        phoneNumber: messageData.sender,
+        lastMessage: messageData.text,
+        timestamp: messageData.timestamp,
+        unreadCount: 0,
+      })
+
+      // Atualiza o último status da mensagem
+      updateLastMessage(
+        messageData.sender,
+        messageData.text,
+        messageData.timestamp,
+        false
+      )
     })
 
     socketRef.current.on("new_message_ai", (messageData) => {
       console.log("Nova resposta da IA:", messageData)
-      const formattedMessage = formatMessage(messageData)
+
+      // Formata a mensagem da IA
+      const formattedMessage = formatMessage({
+        id: messageData.id,
+        text: messageData.text,
+        sender: "ai",
+        timestamp: messageData.timestamp,
+        messageTo: messageData.messageTo, // número do telefone do destinatário
+      })
+
+      // Adiciona a mensagem ao chat
       addMessage(formattedMessage)
 
-      // Para respostas da IA, atualizamos o chat do usuário que recebeu a resposta
-      if (messageData.recipientId) {
+      // Atualiza o último status da mensagem no chat do usuário
+      if (messageData.messageTo) {
         updateLastMessage(
-          messageData.recipientId,
+          messageData.messageTo,
           messageData.text,
           messageData.timestamp,
-          true // é mensagem da IA
+          true
         )
       }
     })
@@ -57,7 +85,14 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => {
       socketRef.current?.disconnect()
     }
-  }, [addMessage, formatMessage, currentChatId, isAIEnabled, updateLastMessage])
+  }, [
+    addMessage,
+    formatMessage,
+    currentChatId,
+    isAIEnabled,
+    updateLastMessage,
+    addOrUpdateChat,
+  ])
 
   return <>{children}</>
 }

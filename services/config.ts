@@ -7,10 +7,10 @@ export const config = {
         basic: {
            priceId: "price_1Q8AJoDgEDIMcktiZLmEKDB0",
            quota: {
-            agents: 1,        // Limite de agentes "IA"
-            knowledgeBase: 1, // Limite para o banco de conhecimento
-            teams: 1,         // Limite para o número de equipes
-            members: 1        // Limite de membros por equipe
+            agents: 12,        // Limite de agentes "IA"
+            knowledgeBase: 4, // Limite para o banco de conhecimento
+            teams: 5,         // Limite para o número de equipes
+            members: 5        // Limite de membros por equipe
           }
         },
         operational: {

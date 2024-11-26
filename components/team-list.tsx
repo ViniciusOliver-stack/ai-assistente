@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table"
 
 export default function TeamList() {
-  const [teams, setTeams] = useState(null)
+  const [teams, setTeams] = useState<Team | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [membersCount, setMembersCount] = useState(0)
   const [memberLimit, setMemberLimit] = useState(0)

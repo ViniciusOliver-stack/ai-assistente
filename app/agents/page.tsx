@@ -9,18 +9,18 @@ import Link from "next/link"
 import React from "react"
 import { BoltIcon } from "lucide-react"
 
-type Agent = {
+export type Agent = {
   id: string
-  title: string
-  description: string
-  enterprise: string
-  providerModel: string
+  title: string | null
+  description: string | null
+  enterprise: string | null
+  providerModel: string | null
   temperature: number | null
-  restrictionContent: boolean
-  languageDetector: boolean
-  prompt: string
+  restrictionContent: boolean | null
+  languageDetector: boolean | null
+  prompt: string | null
   teamId: string
-  tokenId: string
+  tokenId: string | null
 }
 
 export default function Agents() {
@@ -47,7 +47,7 @@ export default function Agents() {
       }
     }
     fetchUserTeams()
-  }, [selectedTeamId])
+  }, [agents, selectedTeamId])
 
   if (isLoading) {
     return <div>Carregando...</div>

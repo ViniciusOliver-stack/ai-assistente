@@ -10,16 +10,16 @@ import { useEffect, useState } from "react"
 
 export type Agent = {
   id: string
-  title: string
-  description: string
-  enterprise: string
-  providerModel: string
+  title: string | null
+  description: string | null
+  enterprise: string | null
+  providerModel: string | null
   temperature: number | null
-  restrictionContent: boolean
-  languageDetector: boolean
-  prompt: string
+  restrictionContent: boolean | null
+  languageDetector: boolean | null
+  prompt: string | null
   teamId: string
-  tokenId: string
+  tokenId: string | null
 }
 
 interface PanelAgentsProps {

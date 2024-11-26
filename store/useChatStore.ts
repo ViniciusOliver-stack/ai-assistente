@@ -29,11 +29,11 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   
   formatMessage: (messageData) => {
     return {
-      id: messageData.id || Date.now(),
+      id: messageData.id || Date.now().toString(),
       text: messageData.text,
-      sender: messageData.sender === "client" ? "client" : messageData.sender,
+      sender: messageData.sender,
       timestamp: messageData.timestamp || new Date().toISOString(),
-      phoneNumber: messageData.phoneNumber || null,
+      messageTo: messageData.messageTo || null, // Adiciona o destinatário da mensagem
     }
   },
   
@@ -47,7 +47,6 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   loadMessagesForChat: async (chatId) => {
     set({ isLoading: true })
     try {
-      // Primeiro verifica se já temos as mensagens em cache
       const cachedMessages = get().messageHistory[chatId]
       if (cachedMessages) {
         set({ messages: cachedMessages })
@@ -58,7 +57,6 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       const response = await fetch(`/api/messages/${chatId}`)
       const messages = await response.json()
       
-      // Atualiza tanto o cache quanto as mensagens atuais
       set((state) => ({
         messages,
         messageHistory: {
@@ -73,22 +71,20 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }
   },
 
-  addMessage: (message, chatId = null) => {
-    const targetChatId = chatId || get().currentChatId
-    if (!targetChatId) return
-
+  addMessage: (message) => {
     set((state) => {
-      // Atualiza tanto as mensagens atuais quanto o histórico
-      const updatedMessages = [...(state.messages || []), message].sort(
-        (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-      )
-
+      const newMessages = [...state.messages, message];
+      
+      // Atualiza também o histórico de mensagens do chat específico
+      const chatId = message.sender === 'ai' ? message.messageTo : message.sender;
+      if (chatId) {
+        const chatMessages = state.messageHistory[chatId] || [];
+        state.messageHistory[chatId] = [...chatMessages, message];
+      }
+      
       return {
-        messages: updatedMessages,
-        messageHistory: {
-          ...state.messageHistory,
-          [targetChatId]: updatedMessages
-        }
+        messages: newMessages,
+        messageHistory: state.messageHistory
       }
     })
   },
@@ -105,7 +101,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           clientMessageText, 
-          agentId: "cm326wkzr0001ph44fr0uqiqa" 
+          agentId
         }),
       })
 
@@ -114,7 +110,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         id: data.id,
         text: data.text,
         sender: "ai",
-        timestamp: data.timestamp
+        timestamp: data.timestamp,
+        messageTo: data.messageTo // Adiciona o destinatário
       })
       
       get().addMessage(aiMessage)
@@ -132,10 +129,11 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     
     try {
       const message = get().formatMessage({
-        id: Date.now(),
+        id: Date.now().toString(),
         text,
         sender: "ai",
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        messageTo: phoneNumber // Adiciona o destinatário
       })
 
       get().addMessage(message)

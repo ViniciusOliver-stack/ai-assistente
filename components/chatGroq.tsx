@@ -3,10 +3,14 @@ import { useState } from "react"
 export function GroqChat() {
   const [isLoading, setLoading] = useState(false)
   const [aiResponse, setAiResponse] = useState("")
+  const [inputContent, setInputContent] = useState("")
   const agentId = "cm326wkzr0001ph44fr0uqiqa"
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event?.preventDefault()
+
+    if (!inputContent.trim()) return
+
     try {
       setLoading(true)
       const response = await fetch("/api/groq", {
@@ -14,11 +18,12 @@ export function GroqChat() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ content: content.value, agentId }),
+        body: JSON.stringify({ content: inputContent, agentId }),
       })
 
       const data = await response.json()
       setAiResponse(data.content)
+      setInputContent("") // Limpa o input após o envio
     } catch (error) {
       console.error("Ops, houve um erro: ", error)
     } finally {
@@ -35,14 +40,16 @@ export function GroqChat() {
         <input
           type="text"
           id="content"
+          value={inputContent}
+          onChange={(e) => setInputContent(e.target.value)}
           placeholder="Ask me something..."
           className="border border-gray-300 rounded-lg p-2 max-w-[200px] sm:max-w-none focus:outline-none focus:ring-2 focus:ring-red-400"
         />
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || !inputContent.trim()}
           className={`${
-            isLoading
+            isLoading || !inputContent.trim()
               ? "bg-gray-300 cursor-not-allowed"
               : "bg-red-400 hover:bg-red-500"
           } text-white px-4 py-2 rounded-lg focus:outline-none text-sm sm:text-base`}

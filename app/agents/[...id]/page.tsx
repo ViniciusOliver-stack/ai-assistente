@@ -3,11 +3,18 @@
 import Title from "@/components/ui/title"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { LaptopIcon, MessageSquare, Settings2, Terminal } from "lucide-react"
+import {
+  GlobeIcon,
+  LaptopIcon,
+  MessageSquare,
+  Settings2,
+  Terminal,
+} from "lucide-react"
 import { PanelAgents } from "../(components)/panel"
 import { ModelAgents } from "../(components)/model"
 import { ModelsPrompt } from "../(components)/prompt"
 import ChatLayout from "../(components)/chat"
+import SettingPublic from "../(components)/setting-public"
 
 export default function AgentDetails({ params }: { params: { id: string } }) {
   const id = params.id[0]
@@ -16,8 +23,11 @@ export default function AgentDetails({ params }: { params: { id: string } }) {
     <div>
       <Title title="Agente" description="Edite e personalize o seu Agente" />
 
-      <Tabs defaultValue="panel" className="flex">
-        <TabsList className="flex-col items-start">
+      <Tabs
+        defaultValue="panel"
+        className="flex flex-col items-center justify-center"
+      >
+        <TabsList className="gap-8 items-start">
           <TabsTrigger value="panel">
             <LaptopIcon size={18} />
             Visão Geral
@@ -34,19 +44,29 @@ export default function AgentDetails({ params }: { params: { id: string } }) {
             <Terminal size={18} />
             Prompt
           </TabsTrigger>
+
+          <TabsTrigger value="setting-public">
+            <GlobeIcon size={18} />
+            Publicar
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent className="w-full px-20" value="panel">
+        <div className="w-[88%] h-[1px] bg-neutral-800 mt-6" />
+
+        <TabsContent className="w-full px-24 pt-8" value="panel">
           <PanelAgents id={id} />
         </TabsContent>
-        <TabsContent className="w-full px-20" value="chat">
+        <TabsContent className="w-full px-24 pt-8" value="chat">
           <ChatLayout />
         </TabsContent>
-        <TabsContent className="px-20" value="model">
+        <TabsContent className="w-full px-24 pt-8" value="model">
           <ModelAgents />
         </TabsContent>
-        <TabsContent className="w-full px-20" value="prompt">
+        <TabsContent className="w-full px-24 pt-8" value="prompt">
           <ModelsPrompt />
+        </TabsContent>
+        <TabsContent className="w-full px-24 pt-8" value="setting-public">
+          <SettingPublic />
         </TabsContent>
       </Tabs>
 

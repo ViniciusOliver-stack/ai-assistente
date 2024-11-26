@@ -1,6 +1,7 @@
+import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { getSession } from "next-auth/react"
-import { NextResponse } from "next/server"
+import { getServerSession } from "next-auth"
+import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(req: Request, {params}: {params: {id: string}}) {
     const {id} = params
@@ -28,17 +29,18 @@ export async function GET(req: Request, {params}: {params: {id: string}}) {
     }
 }
 
-export async function PUT(req: Request, {params}: {params: {id: string}}) {
-    const session = await getSession({req})
-
-    if(!session || !session.user) {
-        return NextResponse.json({error: "Usuário não autenticado"}, {status: 401})
-    }
-
-    const {id} = params
-    const {name, description} = await req.json()
-
+export async function PUT(req: NextRequest, {params}: {params: {id: string}}) {
     try{
+
+        const session = await getServerSession(authOptions);
+
+        if(!session || !session.user) {
+            return NextResponse.json({error: "Usuário não autenticado"}, {status: 401})
+        }
+    
+        const {id} = params
+        const {name, description} = await req.json()
+
         //Verifica se o usuário é membro da equipe
         const teamMember = await db.teamMember.findFirst({
             where:{
@@ -66,16 +68,18 @@ export async function PUT(req: Request, {params}: {params: {id: string}}) {
     }
 }
 
-export async function DELETE(req: Request, {params}: {params:  {id: string}}) {
-    const session = await getSession({ req });
-
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-  
-    const { id } = params;
+export async function DELETE(req: NextRequest, {params}: {params:  {id: string}}) {
 
     try{
+        const session = await getServerSession(authOptions);
+
+        if (!session || !session.user) {
+          return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+      
+        const { id } = params;
+    
+
         const teamMember = await db.teamMember.findFirst({
             where: {
                 teamId: id,

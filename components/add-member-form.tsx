@@ -15,7 +15,8 @@ export default function AddMemberForm() {
   const selectedTemId = useTeamStore((state) => state.selectedTeamId)
   const { toast } = useToast()
 
-  const handleAddMember = async (e) => {
+  // eslint-disable-next-line
+  const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsAdding(true)
 

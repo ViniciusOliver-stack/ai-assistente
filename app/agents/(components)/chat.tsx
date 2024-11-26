@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef } from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import ReactMarkdown from "react-markdown"
-import { usePathname } from "next/navigation"
+//import { usePathname } from "next/navigation"
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { dracula } from "react-syntax-highlighter/dist/cjs/styles/prism"
 import { useToast } from "@/hooks/use-toast"
@@ -11,18 +11,26 @@ import {
   BotOff,
   CopyIcon,
   MessageSquare,
+  MessageSquareOffIcon,
   SendHorizonalIcon,
   Trash2Icon,
   User2Icon,
-  X,
 } from "lucide-react"
+
 import { useChatStore } from "@/store/useChatStore"
 import { useChatListStore } from "@/store/useChatListStore"
 import { formatDistanceToNow } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export default function ChatLayout() {
-  const pathname = usePathname()
+  //const pathname = usePathname()
   // const agentId = pathname.split("/")[2]
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
@@ -34,13 +42,22 @@ export default function ChatLayout() {
     newMessage,
     currentChatId,
     setCurrentChatId,
-    loadMessagesForChat,
     setIsAIEnabled,
     setNewMessage,
     sendManualMessage,
   } = useChatStore()
 
-  const { chats, activeChat, setActiveChat } = useChatListStore()
+  const { chats, activeChat, setActiveChat, addOrUpdateChat } =
+    useChatListStore()
+
+  // Filtra as mensagens para o chat ativo
+  const activeMessages = useMemo(() => {
+    return messages.filter(
+      (message) =>
+        message.sender === activeChat ||
+        (message.sender === "ai" && message.messageTo === activeChat)
+    )
+  }, [messages, activeChat])
 
   // Encontra o chat ativo e seu número de telefone
   const activePhoneNumber = useMemo(() => {
@@ -53,10 +70,16 @@ export default function ChatLayout() {
     if (activeChat && activeChat !== currentChatId) {
       setCurrentChatId(activeChat)
     }
-  }, [activeChat, currentChatId])
+  }, [activeChat, currentChatId, setCurrentChatId])
 
   const handleChatSelect = (chatId: string) => {
     setActiveChat(chatId)
+
+    // Reseta o contador de mensagens não lidas
+    const chat = chats.find((chat) => chat.id === chatId)
+    if (chat) {
+      addOrUpdateChat({ ...chat, unreadCount: 0 })
+    }
   }
 
   const formatTimestamp = (timestamp: string) => {
@@ -66,13 +89,11 @@ export default function ChatLayout() {
     })
   }
 
-  console.log("Contato ativo", activeChat)
-
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault()
       if (activePhoneNumber) {
-        sendManualMessage(activePhoneNumber, newMessage)
+        sendManualMessage(newMessage, activePhoneNumber)
         setNewMessage("")
       }
     }
@@ -81,6 +102,7 @@ export default function ChatLayout() {
   const handleSendMessage = () => {
     if (activePhoneNumber) {
       sendManualMessage(newMessage, activePhoneNumber)
+      setNewMessage("")
     } else {
       toast({
         title: "Erro",
@@ -92,6 +114,7 @@ export default function ChatLayout() {
   }
 
   const renderers = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     code({ inline, className, children }: any) {
       const match = /language-(\w+)/.exec(className || "")
       const language = match ? match[1] : "text"
@@ -147,76 +170,98 @@ export default function ChatLayout() {
     <div className="flex h-[calc(100vh_-_7rem)] border rounded-lg overflow-hidden">
       {/* Lista de chats */}
       <div className="w-1/4 bg-white border-r border-gray-200 p-4">
-        <div className="h-[calc(100vh-8rem)] overflow-y-auto">
+        <div className="h-[calc(100vh-8rem)] overflow-y-auto space-y-2">
           {chats.map((chat) => (
             <div
               key={chat.id}
-              className={`mb-4 p-3 hover:bg-gray-100 rounded-lg cursor-pointer ${
+              className={`p-3 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors ${
                 activeChat === chat.id ? "bg-gray-100" : ""
               }`}
               onClick={() => handleChatSelect(chat.id)}
             >
-              <div className="flex justify-between items-center mb-1">
-                <span className="font-semibold">{chat.name}</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">
-                    {formatTimestamp(chat.timestamp)}
-                  </span>
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">{chat.name}</span>
+                    <span className="text-[10px] text-gray-500">
+                      {formatTimestamp(chat.timestamp)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-gray-600 truncate max-w-[180px]">
+                      {chat.lastMessage}
+                    </p>
+                    {chat.unreadCount > 0 && (
+                      <span className="bg-blue-500 text-white text-[10px] rounded-full min-w-[15px] text-center">
+                        {chat.unreadCount}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="flex justify-between">
-                <p className="text-sm text-gray-600 truncate">
-                  {chat.lastMessage}
-                </p>
-
-                {chat.unreadCount > 0 && (
-                  <span className="bg-blue-500 text-primary-foreground text-xs rounded-full px-2 flex items-center">
-                    {chat.unreadCount}
-                  </span>
-                )}
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Área principal do chat */}
-      {currentChatId ? (
-        <div className="flex-1 flex flex-col">
-          {/* Cabeçalho do chat */}
-          <div className="bg-white p-4 shadow-sm flex justify-end items-center">
-            <div className="space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsAIEnabled(!isAIEnabled)}
-              >
-                {isAIEnabled ? (
-                  <BotOff className="w-4 h-4 mr-2" />
-                ) : (
-                  <BotIcon className="w-4 h-4 mr-2" />
-                )}
-                {isAIEnabled ? "Desabilitar IA" : "Habilitar IA"}
-              </Button>
-              <Button variant="outline" size="sm">
-                <X className="w-4 h-4 mr-2" />
-                Encerrar chamado
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="hover:bg-red-400 hover:text-white"
-              >
-                <Trash2Icon className="w-4 h-4 mr-2" />
-                Deletar conversa
-              </Button>
-            </div>
-          </div>
+      {/* Área de mensagens */}
+      <div className="flex-1 flex flex-col bg-gray-50">
+        {activeChat ? (
+          <>
+            <div className="bg-white p-4 shadow-sm flex justify-between items-center">
+              {/* <div className="flex items-center gap-3">
+                <Avatar className="w-10 h-10">
+                  <AvatarFallback>
+                    {chats
+                      .find((c) => c.id === activeChat)
+                      ?.name.substring(0, 2)
+                      .toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="font-medium">
+                  {chats.find((c) => c.id === activeChat)?.name}
+                </span>
+              </div> */}
+              <div className="space-x-2 flex justify-end items-end w-full select-none">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsAIEnabled(!isAIEnabled)}
+                >
+                  {isAIEnabled ? (
+                    <BotOff className="w-4 h-4 mr-2" />
+                  ) : (
+                    <BotIcon className="w-4 h-4 mr-2" />
+                  )}
+                  {isAIEnabled ? "Desabilitar IA" : "Habilitar IA"}
+                </Button>
 
-          {/* Mensagens do chat */}
-          <div className="flex-1 px-4  space-y-4">
-            <div className="flex-1 p-4 overflow-y-auto max-h-[calc(100vh-18rem)]">
-              {messages.map((message, index) => (
+                <Button variant="outline" size="sm">
+                  <Trash2Icon className="w-4 h-4 mr-2" />
+                  Excluir conversa
+                </Button>
+
+                <Button variant="outline" size="sm">
+                  <MessageSquareOffIcon className="w-4 h-4 mr-2" />
+                  Fechar chat
+                </Button>
+
+                <Select>
+                  <SelectTrigger className="w-fit h-[33px]">
+                    <SelectValue placeholder="Responsável" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">
+                      Vinicius Santos Oliveira
+                    </SelectItem>
+                    <SelectItem value="dark">Tarcísio</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4">
+              {activeMessages.map((message, index) => (
                 <div
                   key={index}
                   className={`flex ${
@@ -224,27 +269,20 @@ export default function ChatLayout() {
                   } mb-4`}
                 >
                   <div
-                    className={`flex ${
+                    className={`max-w-[70%] flex items-end gap-2 ${
                       message.sender === "ai" ? "flex-row-reverse" : "flex-row"
-                    } items-end`}
+                    }`}
                   >
                     <Avatar className="w-8 h-8">
-                      <AvatarImage
-                        src={
-                          message.sender === "ai"
-                            ? "/user-avatar.png"
-                            : "/other-avatar.png"
-                        }
-                      />
                       <AvatarFallback>
-                        <User2Icon size={18} />
+                        <User2Icon size="18" />
                       </AvatarFallback>
                     </Avatar>
                     <div
-                      className={`mx-2 py-2 px-4 rounded-2xl ${
+                      className={`py-2 px-4 rounded-xl ${
                         message.sender === "ai"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-secondary text-secondary-foreground"
+                          ? "bg-blue-500 text-white"
+                          : "bg-white"
                       }`}
                     >
                       {message.sender === "ai" ? (
@@ -252,70 +290,52 @@ export default function ChatLayout() {
                           {message.text}
                         </ReactMarkdown>
                       ) : (
-                        message.text
+                        <p>{message.text}</p>
                       )}
-
-                      <div className="text-[10px] text-gray-500 text-right mt-1">
+                      <div
+                        className={`${
+                          message.sender === "ai"
+                            ? "text-white"
+                            : "text-neutral-900"
+                        } text-[10px] text-gray-500 text-right mt-1`}
+                      >
                         {formatTimestampToTime(message.timestamp)}
                       </div>
                     </div>
                   </div>
                 </div>
               ))}
-
-              {isLoading && (
-                <div className="flex justify-start mb-4">
-                  <div className="flex items-end">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage src="/other-avatar.png" />
-                      <AvatarFallback>O</AvatarFallback>
-                    </Avatar>
-                    <div className="m-2 p-2 rounded-2xl bg-secondary text-secondary-foreground">
-                      <div className="dots-loading">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               <div ref={messagesEndRef} />
             </div>
-          </div>
 
-          {/* Input de mensagem */}
-          {!isAIEnabled && activePhoneNumber && (
-            <div className=" p-4 border-t border-gray-200">
-              <form className="" onSubmit={(e) => e.preventDefault()}>
-                <div className="flex space-x-2 items-center">
+            {!isAIEnabled && (
+              <div className="p-4 bg-white border-t">
+                <div className="flex gap-2">
                   <textarea
-                    placeholder="Mensagem"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="flex-grow p-2 border rounded-md resize-none focus:outline-none"
+                    placeholder="Digite sua mensagem..."
+                    className="flex-1 p-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                     rows={1}
                   />
-
                   <Button
                     onClick={handleSendMessage}
                     disabled={isLoading || !newMessage.trim()}
+                    className="self-end"
                   >
-                    Enviar
-                    <SendHorizonalIcon className="w-4 h-4 ml-2" />
+                    <SendHorizonalIcon className="w-4 h-4" />
                   </Button>
                 </div>
-              </form>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="flex-1 flex items-center justify-center text-gray-500">
-          <p>Selecione um chat para começar</p>
-        </div>
-      )}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-gray-500">
+            <p>Selecione uma conversa para começar</p>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
