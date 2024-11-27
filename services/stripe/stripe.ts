@@ -84,8 +84,8 @@ export const createCheckoutSession = async (
           quantity: 1,
         },
       ],
-      success_url: `http://localhost:3000/config/billing?success=true`,
-      cancel_url: `http://localhost:3000/config/billing?success=false`,
+      success_url: `https://ai-assistente.vercel.app/config/billing?success=true`,
+      cancel_url: `https://ai-assistente.vercel.app/config/billing?success=false`,
     })
 
     return {
