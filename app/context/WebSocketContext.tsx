@@ -19,9 +19,10 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     // })
 
     socketRef.current = io(
-      "https://assistent-ai-nodejs.3g77fw.easypanel.host:9901",
+      "https://assistent-ai-nodejs.3g77fw.easypanel.host",
       {
         transports: ["websocket"],
+        path: "/socket.io",
       }
     )
 
