@@ -1,12 +1,22 @@
 interface AlertProps {
   title: string
+  color: "alert" | "success" | "info" | "warning"
 }
 
-export default function Alert({ title }: AlertProps) {
+export default function Alert({ title, color }: AlertProps) {
+  const colorClasses = {
+    alert: "bg-red-500 text-white",
+    success: "bg-green-500 text-white",
+    info: "bg-blue-500 text-white",
+    warning: "bg-yellow-500 text-black",
+  }
+
+  const selectedColorClass = colorClasses[color] || colorClasses.info
+
   return (
     <div
       role="alert"
-      className="w-lg max-w-fit rounded-lg p-4 bg-zinc-300 text-neutral-700 flex gap-2 text-sm"
+      className={`w-lg max-w-fit rounded-lg p-4 ${selectedColorClass} flex gap-2 text-sm`}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
