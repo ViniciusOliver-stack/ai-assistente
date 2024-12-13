@@ -102,9 +102,10 @@ model Team {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  members TeamMember[]
-  agents  Agent[]
-  apiKeys ApiKey[]
+  members          TeamMember[]
+  agents           Agent[]
+  apiKeys          ApiKey[]
+  WhatsAppInstance WhatsAppInstance[]
 
   // Relacionar o time ao usuário dono
   ownerId String?
@@ -146,6 +147,7 @@ model Agent {
   tokenId String?
 
   // @@unique([teamId])
+  WhatsAppInstance WhatsAppInstance[]
 }
 
 model Plan {
@@ -170,4 +172,26 @@ model ApiKey {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model WhatsAppInstance {
+  id           String   @id @default(cuid())
+  instanceName String   @unique
+  instanceId   String   @unique
+  status       String
+  apiKey       String?
+  integration  String
+  serverUrl    String
+  webhookUrl   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId String
+
+  agent   Agent  @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  agentId String
+
+  @@index([teamId])
+  @@index([agentId])
 }
