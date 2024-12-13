@@ -17,11 +17,19 @@ import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { TrashIcon } from "lucide-react"
 
+interface WhatsAppProfile {
+  owner?: string
+  profileName?: string
+  profilePictureUrl?: string | null
+  profileStatus?: string
+}
+
 interface ConnectionResponse {
   base64: string
   qrcode?: {
     base64: string
   }
+  instance?: WhatsAppInstance["instance"]
 }
 
 interface InstanceData {
@@ -31,7 +39,42 @@ interface InstanceData {
   }
 }
 
-export default function SettingPublic() {
+interface WhatsAppInstance extends WhatsAppProfile {
+  instance: {
+    instanceName: string
+    instanceId: string
+    status: string
+    serverUrl: string
+    apikey: string
+    owner?: string
+    profileName?: string
+    profilePictureUrl?: string | null
+    profileStatus?: string
+    integration: {
+      integration: string
+      token: string
+      webhook_wa_business: string
+    }
+  }
+}
+
+interface DBWhatsAppInstance {
+  id: string
+  instanceName: string
+  instanceId: string
+  status: string
+  apiKey?: string
+  integration: string
+  serverUrl: string
+  webhookUrl?: string
+}
+
+interface SettingPublicProps {
+  teamId: string
+  agentId: string
+}
+
+export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
   const { toast } = useToast()
 
   const [instanceValue, setInstanceValue] = useState("")
@@ -43,6 +86,8 @@ export default function SettingPublic() {
     "waiting" | "success" | "failed"
   >("waiting")
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const [dbInstance, setDbInstance] = useState<DBWhatsAppInstance | null>(null)
+  const pendingInstanceRef = useRef<WhatsAppInstance | null>(null)
 
   const handleInputInstance = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInstanceValue(event.target.value)
@@ -50,6 +95,71 @@ export default function SettingPublic() {
 
   function generateUniqueToken(): string {
     return randomBytes(32).toString("hex")
+  }
+
+  useEffect(() => {
+    const fetchInstance = async () => {
+      try {
+        const response = await fetch(
+          `/api/whatsapp/instance?teamId=${teamId}&agentId=${agentId}`
+        )
+        if (response.ok) {
+          const data = await response.json()
+          setDbInstance(data)
+          if (data?.instanceName) {
+            setInstanceValue(data.instanceName)
+            setInstance({
+              instance: {
+                instanceName: data.instanceName,
+                status: data.status,
+              },
+            })
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching instance:", error)
+      }
+    }
+
+    fetchInstance()
+  }, [teamId, agentId])
+
+  const saveInstanceToDatabase = async (instanceData: WhatsAppInstance) => {
+    try {
+      const response = await fetch("/api/whatsapp/instance", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          instanceName: instanceData.instance.instanceName,
+          instanceId: instanceData.instance.instanceId,
+          status: instanceData.instance.status,
+          apiKey: instanceData.instance.apikey,
+          integration: instanceData.instance.integration.integration,
+          serverUrl: instanceData.instance.serverUrl,
+          webhookUrl: instanceData.instance.integration.webhook_wa_business,
+          teamId: teamId,
+          agentId: agentId,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Erro ao salvar instância no banco de dados")
+      }
+
+      toast({
+        title: "Instância salva com sucesso",
+        description: "Sua instância do WhatsApp foi salva com sucesso!",
+      })
+    } catch (error) {
+      console.error("Error saving instance:", error)
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar os dados da instância.",
+        variant: "destructive",
+      })
+    }
   }
 
   const checkInstanceStatus = async () => {
@@ -76,8 +186,17 @@ export default function SettingPublic() {
       console.log("Nome da instancia:", targetInstance)
       setInstance(targetInstance)
 
+      console.log("Instância foi criada com sucesso!")
+      setConnectionStatus("waiting")
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      await saveInstanceToDatabase(targetInstance)
+
       if (targetInstance?.instance.status === "open") {
         setConnectionStatus("success")
+        if (pendingInstanceRef.current) {
+          pendingInstanceRef.current = null
+        }
         toast({
           title: "Conexão estabelecida",
           description: "Sua instância do WhatsApp foi conectada com sucesso!",
@@ -86,6 +205,7 @@ export default function SettingPublic() {
         return true
       } else {
         setConnectionStatus("failed")
+        pendingInstanceRef.current = null
         toast({
           title: "Conexão não estabelecida",
           description:
@@ -97,6 +217,7 @@ export default function SettingPublic() {
     } catch (error) {
       console.error("Erro ao verificar status:", error)
       setConnectionStatus("failed")
+      pendingInstanceRef.current = null
       toast({
         title: "Erro de Conexão",
         description: "Não foi possível verificar o status da instância.",
@@ -107,17 +228,44 @@ export default function SettingPublic() {
   }
 
   const handleDeleteInstance = async () => {
-    await fetch(
-      `https://symplus-evolution.3g77fw.easypanel.host/instance/delete/${instanceValue}`,
-      {
+    try {
+      // Delete from external API
+      await fetch(
+        `https://symplus-evolution.3g77fw.easypanel.host/instance/delete/${instanceValue}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            apikey:
+              "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ",
+          },
+        }
+      )
+
+      // Delete from local database
+      await fetch(`/api/whatsapp/instance`, {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          apikey:
-            "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ",
-        },
-      }
-    )
+        body: JSON.stringify({
+          agentId: dbInstance?.id,
+        }),
+      })
+
+      setDbInstance(null)
+      setInstance(undefined)
+      setInstanceValue("")
+
+      toast({
+        title: "Instância excluída",
+        description: "A instância foi removida com sucesso.",
+      })
+    } catch (error) {
+      console.error("Error deleting instance:", error)
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir a instância.",
+        variant: "destructive",
+      })
+    }
   }
 
   const startCountdown = () => {
@@ -257,6 +405,11 @@ export default function SettingPublic() {
 
       const data: ConnectionResponse = await response.json()
 
+      // Armazena os dados da instância para salvar posteriormente
+      if (data.instance) {
+        pendingInstanceRef.current = { instance: data.instance }
+      }
+
       if (data.qrcode?.base64) {
         setQrCode(data.qrcode.base64)
         startCountdown()
@@ -306,7 +459,7 @@ export default function SettingPublic() {
     }
   }
 
-  console.log("Instancia", instance)
+  // console.log("Instancia", instance)
 
   return (
     <section className="">
@@ -320,7 +473,12 @@ export default function SettingPublic() {
 
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button>Conectar conta</Button>
+            <Button
+              className="hover:bg-blue-500 transition-all delay-100"
+              disabled={!!dbInstance}
+            >
+              Conectar conta
+            </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
