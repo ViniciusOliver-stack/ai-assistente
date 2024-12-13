@@ -59,7 +59,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div>
+    <div className="w-[80%] mx-auto">
       <Header
         title="Minha Conta"
         description="Gerencie as informações da sua conta"
@@ -97,7 +97,7 @@ export default function ProfilePage() {
 
           <Button
             disabled={!username || isUpdating}
-            className="disabled:cursor-not-allowed"
+            className="disabled:cursor-not-allowed hover:bg-blue-500 transition-all delay-100"
           >
             {isUpdating ? "Atualizando..." : "Atualizar"}
           </Button>

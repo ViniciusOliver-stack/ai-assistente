@@ -85,7 +85,7 @@ export default function CreateTeamFrom() {
       <Button
         type="submit"
         disabled={isCreating || !name}
-        className="items-end"
+        className="items-end hover:bg-blue-500 transition-all delay-100"
       >
         {isCreating ? "Criando..." : "Criar Equipe"}
       </Button>

@@ -13,64 +13,32 @@ export function Header({ title, description }: HeaderProps) {
   const pathname = usePathname()
 
   return (
-    <div>
+    <div className="mb-8">
       <Title title={title} description={description} />
 
-      <div>
-        <ul className="flex items-center gap-6 mt-4 border-b border-b-neutral-700 mb-6">
-          <li>
-            <Link
-              href="/config/profile"
-              className={
-                pathname === "/config/profile"
-                  ? "text-blue-500 border-b-2 border-blue-500"
-                  : ""
-              }
-            >
-              Perfil
-            </Link>
-          </li>
-
-          <li>
-            <Link
-              href="/config/team"
-              className={
-                pathname === "/config/team"
-                  ? "text-blue-500 border-b-2 border-blue-500"
-                  : ""
-              }
-            >
-              Equipe
-            </Link>
-          </li>
-
-          <li>
-            <Link
-              href="/config/billing"
-              className={
-                pathname === "/config/billing"
-                  ? "text-blue-500 border-b-2 border-blue-500"
-                  : ""
-              }
-            >
-              Pagamento
-            </Link>
-          </li>
-
-          <li>
-            <Link
-              href="/config/api-keys"
-              className={
-                pathname === "/config/api-keys"
-                  ? "text-blue-500 border-b-2 border-blue-500"
-                  : ""
-              }
-            >
-              Chaves de API
-            </Link>
-          </li>
+      <nav className="mt-6">
+        <ul className="flex space-x-1 border-b border-gray-200 dark:border-gray-700">
+          {[
+            { href: "/config/profile", label: "Perfil" },
+            { href: "/config/team", label: "Equipe" },
+            { href: "/config/billing", label: "Pagamento" },
+            { href: "/config/api-keys", label: "Chaves de API" },
+          ].map(({ href, label }) => (
+            <li key={href}>
+              <Link
+                href={href}
+                className={`inline-block px-4 py-2 text-sm font-medium transition-colors duration-200 ${
+                  pathname === href
+                    ? "text-blue-600 border-b-2 border-blue-600 dark:text-blue-500 dark:border-blue-500"
+                    : "text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600"
+                }`}
+              >
+                {label}
+              </Link>
+            </li>
+          ))}
         </ul>
-      </div>
+      </nav>
     </div>
   )
 }

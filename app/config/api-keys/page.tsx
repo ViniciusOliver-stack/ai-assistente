@@ -59,10 +59,10 @@ export default function ApiKeysPage() {
   }
 
   return (
-    <div>
+    <div className="w-[80%] mx-auto">
       <Header title="Chaves de API" description="Gerencie suas chaves de API" />
 
-      <section className="md:w-[70%]">
+      <section className="">
         <header className="flex flex-col gap-2">
           <h2 className="text-lg font-medium">API Keys externas</h2>
           <p className="text-sm text-gray-500">

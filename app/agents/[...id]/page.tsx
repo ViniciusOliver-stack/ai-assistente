@@ -20,7 +20,7 @@ export default function AgentDetails({ params }: { params: { id: string } }) {
   const id = params.id[0]
 
   return (
-    <div>
+    <div className="w-[80%] mx-auto">
       <Title title="Agente" description="Edite e personalize o seu Agente" />
 
       <Tabs
@@ -51,22 +51,25 @@ export default function AgentDetails({ params }: { params: { id: string } }) {
           </TabsTrigger>
         </TabsList>
 
-        <div className="w-[88%] h-[1px] bg-neutral-800 mt-6" />
+        <div className="w-full h-[1px] bg-neutral-800 mt-6" />
 
-        <TabsContent className="w-full px-24 pt-8" value="panel">
+        <TabsContent className="w-full pt-8" value="panel">
           <PanelAgents id={id} />
         </TabsContent>
-        <TabsContent className="w-full px-24 pt-8" value="chat">
+        <TabsContent className="w-full pt-8" value="chat">
           <ChatLayout />
         </TabsContent>
-        <TabsContent className="w-full px-24 pt-8" value="model">
+        <TabsContent className="w-full pt-8" value="model">
           <ModelAgents />
         </TabsContent>
-        <TabsContent className="w-full px-24 pt-8" value="prompt">
+        <TabsContent className="w-full pt-8" value="prompt">
           <ModelsPrompt />
         </TabsContent>
-        <TabsContent className="w-full px-24 pt-8" value="setting-public">
-          <SettingPublic />
+        <TabsContent className="w-full pt-8" value="setting-public">
+          <SettingPublic
+            agentId="3dd65dc1-d054-47fb-89d5-0e7f44974f4f"
+            teamId="cm40jdsgd0002g0m7tqs2ynnt"
+          />
         </TabsContent>
       </Tabs>
 

@@ -92,7 +92,11 @@ export function ModelGroqCloud({ selectedAI }: ModelGroqCloudProps) {
   }
 
   if (isLoading) {
-    return <Spinner />
+    return (
+      <div className="w-full h-auto flex items-center justify-center">
+        <Spinner />
+      </div>
+    )
   }
 
   return (

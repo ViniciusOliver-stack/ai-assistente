@@ -82,7 +82,7 @@ const plans = [
 export default function Plans() {
   return (
     <div className="mx-auto select-none">
-      <h1 className="text-xl text-surface-color-12 mb-6">Planos disponíveis</h1>
+      <h1 className="text-xl mb-6">Planos disponíveis</h1>
       <div className="grid grid-cols-[repeat(auto-fill,_minmax(20rem,_1fr))] gap-6">
         {plans.map((plan) => (
           <div

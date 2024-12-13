@@ -71,13 +71,21 @@ export function PanelAgents({ id }: PanelAgentsProps) {
     }
   }
 
-  if (isLoading) return <Spinner />
+  if (isLoading)
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <Spinner />
+      </div>
+    )
 
   if (!agent) return <div>Agente não encontrado.</div>
 
   return (
     <div className="w-full flex flex-col gap-10">
-      <Alert title="Essas informações não afetam a respostas do seu Agente" />
+      <Alert
+        title="Essas informações não afetam a respostas do seu Agente"
+        color="info"
+      />
 
       <form onSubmit={handleSubmit} className="w-full flex flex-col gap-8">
         <div>

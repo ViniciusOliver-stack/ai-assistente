@@ -84,7 +84,7 @@ export default function AddMemberForm() {
       <Button
         type="submit"
         disabled={isAdding || !email}
-        className="text-white rounded"
+        className="text-white hover:bg-blue-500 transition-all delay-100"
       >
         {isAdding ? "Adicionando..." : "Adicionar Membro"}
       </Button>
