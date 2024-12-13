@@ -8,8 +8,8 @@ import { Textarea } from "@/components/ui/textarea"
 
 export default function NewAgents() {
   return (
-    <div>
-      <header>
+    <section className="w-[80%] mx-auto">
+      <header className="space-y-6 mb-6">
         <Link
           href="/agents"
           className="flex items-center gap-1 text-sm hover:text-blue-500 transition-all duration-200"
@@ -17,11 +17,13 @@ export default function NewAgents() {
           <ArrowLeftIcon size={18} />
           Voltar
         </Link>
+        <Alert
+          title="Essas informações não afetam a respostas do seu Agente"
+          color="info"
+        />
       </header>
 
-      <section className="w-full flex flex-col gap-6">
-        <Alert title="Essas informações não afetam a respostas do seu Agente" />
-
+      <div className="">
         <form action="" className="flex flex-col gap-6">
           <div className="flex flex-col w-full max-w-lg gap-1.5">
             <Label htmlFor="teamName">Nome</Label>
@@ -30,6 +32,7 @@ export default function NewAgents() {
               type="text"
               required
               placeholder="Escreva o nome do agente"
+              className="py-6"
             />
           </div>
 
@@ -38,11 +41,11 @@ export default function NewAgents() {
             <Textarea
               placeholder="Escreva o que seu agente faz"
               required
-              className="resize-none"
+              className="resize-none h-40"
             />
           </div>
         </form>
-      </section>
-    </div>
+      </div>
+    </section>
   )
 }
