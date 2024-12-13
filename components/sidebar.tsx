@@ -29,6 +29,7 @@ import Image from "next/image"
 export default function Sidebar() {
   const { data: session } = useSession()
   const [teams, setTeams] = useState<Team[]>([])
+  const [selectedTeam, setSelectedTeam] = useState<string>("")
   const pathname = usePathname()
   const pathnameContains = (path: string) => pathname.includes(path)
   const nameFallback = session?.user?.name?.substring(0, 1).toUpperCase()
@@ -39,13 +40,19 @@ export default function Sidebar() {
       try {
         const fetchedTeams = await getTeams()
         setTeams(fetchedTeams)
+        // Seleciona a primeira equipe automaticamente
+        if (fetchedTeams.length >= 1) {
+          const firstTeamId = fetchedTeams[0].id
+          setSelectedTeam(firstTeamId)
+          setSelectedTeamId(firstTeamId)
+        }
       } catch (error) {
         console.error("Erro ao obter equipes:", error)
       }
     }
 
     fetchTeams()
-  }, [])
+  }, [setSelectedTeamId])
 
   console.log(teams)
 
@@ -56,7 +63,13 @@ export default function Sidebar() {
           <Image src="/logo.svg" alt="logo" width={120} height={120} />
         </div>
         <div className="pb-5">
-          <Select onValueChange={(value) => setSelectedTeamId(value)}>
+          <Select
+            value={selectedTeam}
+            onValueChange={(value) => {
+              setSelectedTeam(value)
+              setSelectedTeamId(value)
+            }}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Selecione a equipe" />
             </SelectTrigger>
@@ -76,15 +89,8 @@ export default function Sidebar() {
             className="flex items-center gap-2 p-2 hover:bg-neutral-600 text-sm rounded-md"
           >
             <HomeIcon size={18} />
-            Início
+            Dashboard
           </Link>
-          {/* <Link
-            href="/users"
-            className="flex items-center gap-2 p-2 hover:bg-neutral-600 text-sm rounded-md"
-          >
-            <User2 size={18} />
-            Usuários
-          </Link> */}
 
           <Link
             href="/agents"
