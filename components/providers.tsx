@@ -3,6 +3,7 @@
 import { SessionProvider } from "next-auth/react"
 import { usePathname } from "next/navigation"
 import Sidebar from "./sidebar"
+import { SidebarMobile } from "./sidebar-mobile"
 
 const Provider = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname()
@@ -12,6 +13,7 @@ const Provider = ({ children }: { children: React.ReactNode }) => {
       {pathname !== "/auth" && pathname !== "/" ? (
         <div className="flex h-screen">
           <Sidebar />
+          <SidebarMobile />
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* <Header /> */}
             <main className="flex-1 overflow-x-hidden overflow-y-auto px-9 py-6 w-full">
