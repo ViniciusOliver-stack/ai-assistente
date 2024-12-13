@@ -8,6 +8,8 @@ import Title from "@/components/ui/title"
 import Link from "next/link"
 import React from "react"
 import { BoltIcon } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
+import { Button } from "@/components/ui/button"
 
 export type Agent = {
   id: string
@@ -47,30 +49,43 @@ export default function Agents() {
       }
     }
     fetchUserTeams()
-  }, [agents, selectedTeamId])
+  }, [selectedTeamId]) //Se colocar agents como dependência, é feito várias chamadas
 
   if (isLoading) {
-    return <div>Carregando...</div>
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <Spinner />
+      </div>
+    )
   }
 
   return (
-    <section>
-      <Title
-        title="Agentes"
-        description="Gerencie seus agentes para automatizar tarefas de forma inteligente"
-      />
+    <section className="w-[80%] mx-auto">
+      <div className="flex items-center justify-between">
+        <div>
+          <Title
+            title="Agentes"
+            description="Gerencie seus agentes para automatizar tarefas de forma inteligente"
+          />
+        </div>
 
-      <div>
-        <Link href="/agents/new">Criar novo agente</Link>
+        <div>
+          <Button
+            asChild
+            className="hover:bg-blue-500 transition-all delay-100"
+          >
+            <Link href="/agents/new">Criar novo agente</Link>
+          </Button>
+        </div>
       </div>
 
       {agents.length === 0 ? (
-        <p>Você ainda não criou nenhum agente.</p>
+        <p className="mt-10 text-lg">Você ainda não criou nenhum agente.</p>
       ) : (
         agents.map((agent) => (
           <div
             key={agent.id}
-            className="grid grid-cols-[repeat(auto-fill,_minmax(17.5rem,_1fr))] md:grid-cols-[repeat(auto-fill,_minmax(24.25rem,_1fr))] gap-3"
+            className="grid grid-cols-[repeat(auto-fill,_minmax(17.5rem,_1fr))] md:grid-cols-[repeat(auto-fill,_minmax(24.25rem,_1fr))] gap-3 mt-10"
           >
             <div className="p-5 pr-7 h-60 flex flex-col gap-5 bg-surface-color-03/30 border border-surface-color-04/50 rounded-md overflow-hidden">
               <header className="w-full h-full flex flex-col gap-3 justify-between">
