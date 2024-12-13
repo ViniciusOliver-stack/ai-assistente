@@ -14,17 +14,17 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
   const { updateLastMessage, addOrUpdateChat } = useChatListStore()
 
   useEffect(() => {
-    // socketRef.current = io("http://localhost:3001", {
-    //   transports: ["websocket"],
-    // })
+    socketRef.current = io("http://localhost:3001", {
+      transports: ["websocket"],
+    })
 
-    socketRef.current = io(
-      "https://assistent-ai-nodejs.3g77fw.easypanel.host",
-      {
-        transports: ["websocket"],
-        path: "/socket.io",
-      }
-    )
+    // socketRef.current = io(
+    //   "https://assistent-ai-nodejs.3g77fw.easypanel.host",
+    //   {
+    //     transports: ["websocket"],
+    //     path: "/socket.io",
+    //   }
+    // )
 
     socketRef.current.on("connect", () => {
       console.log("Conectado ao WebSocket")
