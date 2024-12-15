@@ -13,11 +13,11 @@ export function ButtonSignOut() {
   if (status === "authenticated") {
     return (
       <button
-        className="w-full flex items-center justify-between bg-transparent"
+        className="w-full flex items-center gap-2 bg-transparent"
         onClick={() => signOut({ callbackUrl: "/auth" })}
       >
-        Sair
         <LogOutIcon size={16} />
+        Sair
       </button>
     )
   }
