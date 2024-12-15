@@ -15,16 +15,52 @@ import { ModelAgents } from "../(components)/model"
 import { ModelsPrompt } from "../(components)/prompt"
 import ChatLayout from "../(components)/chat"
 import SettingPublic from "../(components)/setting-public"
+import { useState } from "react"
+
+const tabTitles = {
+  panel: {
+    title: "Visão Geral",
+    description: "Visualize informações gerais do seu agente",
+  },
+  chat: {
+    title: "Conversas",
+    description: "Acompanhe e gerencie todas as interações",
+  },
+  model: {
+    title: "Modelo",
+    description: "Configure o modelo de IA do seu agente",
+  },
+  prompt: {
+    title: "Prompt",
+    description: "Personalize os prompts do seu agente",
+  },
+  "setting-public": {
+    title: "Publicar",
+    description: "Configure as opções de publicação do seu agente",
+  },
+}
+
+type TabType = "panel" | "chat" | "model" | "prompt" | "setting-public"
 
 export default function AgentDetails({ params }: { params: { id: string } }) {
   const id = params.id[0]
+  const [activeTab, setActiveTab] = useState<TabType>("panel")
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as TabType)
+  }
 
   return (
     <section>
-      <Title title="Agente" description="Edite e personalize o seu Agente" />
+      <Title
+        title={tabTitles[activeTab].title}
+        description={tabTitles[activeTab].description}
+      />
 
       <Tabs
         defaultValue="panel"
+        value={activeTab}
+        onValueChange={handleTabChange}
         className="flex flex-col md:items-center md:justify-center max-w-full px-1"
       >
         <TabsList className="items-start flex-wrap w-full md:flex-row md:gap-8 mt-4">
