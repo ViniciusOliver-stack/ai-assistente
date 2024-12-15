@@ -91,7 +91,7 @@ export function PanelAgents({ id }: PanelAgentsProps) {
         <div>
           <Label>Nome do agente</Label>
           <Input
-            className="w-[500px]"
+            className="md:w-[500px]"
             type="text"
             value={formData.title || ""}
             onChange={(e) =>
@@ -103,7 +103,7 @@ export function PanelAgents({ id }: PanelAgentsProps) {
         <div>
           <Label>Descrição</Label>
           <Textarea
-            className="resize-none w-[500px]"
+            className="resize-none md:w-[500px]"
             value={formData.description || ""}
             onChange={(e) =>
               setFormData({ ...formData, description: e.target.value })

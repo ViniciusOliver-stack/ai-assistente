@@ -28,7 +28,7 @@ const ProtectedContent = ({ children }: { children: React.ReactNode }) => {
           </div>
         </header>
 
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0 w-[90%] mx-auto">
+        <div className="flex flex-1 flex-col md:gap-4 md:p-4 pt-0 w-[90%] mx-auto">
           <main className="flex-1 overflow-x-hidden overflow-y-auto py-6 w-full">
             {children}
           </main>

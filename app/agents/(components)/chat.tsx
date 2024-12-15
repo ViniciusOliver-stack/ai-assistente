@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import ReactMarkdown from "react-markdown"
@@ -7,6 +7,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { dracula } from "react-syntax-highlighter/dist/cjs/styles/prism"
 import { useToast } from "@/hooks/use-toast"
 import {
+  ArrowLeftIcon,
   BotIcon,
   BotOff,
   CopyIcon,
@@ -34,6 +35,7 @@ export default function ChatLayout() {
   // const agentId = pathname.split("/")[2]
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
+  const [isMobileListView, setIsMobileListView] = useState(true)
 
   const {
     messages,
@@ -74,6 +76,7 @@ export default function ChatLayout() {
 
   const handleChatSelect = (chatId: string) => {
     setActiveChat(chatId)
+    setIsMobileListView(false)
 
     // Reseta o contador de mensagens não lidas
     const chat = chats.find((chat) => chat.id === chatId)
@@ -169,8 +172,12 @@ export default function ChatLayout() {
   return (
     <div className="flex h-[calc(100vh_-_7rem)] border rounded-lg overflow-hidden">
       {/* Lista de chats */}
-      <div className="w-1/4 bg-white border-r border-gray-200 p-4">
-        <div className="h-[calc(100vh-8rem)] overflow-y-auto space-y-2">
+      <div
+        className={`w-full md:w-1/4 bg-white border-r border-gray-200 ${
+          activeChat && !isMobileListView ? "hidden md:block" : "block"
+        }`}
+      >
+        <div className="h-full overflow-y-auto space-y-2 p-4">
           {chats.map((chat) => (
             <div
               key={chat.id}
@@ -205,23 +212,23 @@ export default function ChatLayout() {
       </div>
 
       {/* Área de mensagens */}
-      <div className="flex-1 flex flex-col bg-gray-50">
+      <div
+        className={`flex-1 flex flex-col bg-gray-50 ${
+          activeChat && !isMobileListView ? "block" : "hidden md:block"
+        }`}
+      >
         {activeChat ? (
           <>
             <div className="bg-white p-4 shadow-sm flex justify-between items-center">
-              {/* <div className="flex items-center gap-3">
-                <Avatar className="w-10 h-10">
-                  <AvatarFallback>
-                    {chats
-                      .find((c) => c.id === activeChat)
-                      ?.name.substring(0, 2)
-                      .toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="font-medium">
-                  {chats.find((c) => c.id === activeChat)?.name}
-                </span>
-              </div> */}
+              <div className="md:hidden">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsMobileListView(true)}
+                >
+                  <ArrowLeftIcon className="w-4 h-4" />
+                </Button>
+              </div>
               <div className="space-x-2 flex justify-end items-end w-full select-none">
                 <Button
                   variant="outline"
@@ -229,21 +236,23 @@ export default function ChatLayout() {
                   onClick={() => setIsAIEnabled(!isAIEnabled)}
                 >
                   {isAIEnabled ? (
-                    <BotOff className="w-4 h-4 mr-2" />
+                    <BotOff className="w-4 h-4 md:mr-2" />
                   ) : (
-                    <BotIcon className="w-4 h-4 mr-2" />
+                    <BotIcon className="w-4 h-4 md:mr-2" />
                   )}
-                  {isAIEnabled ? "Desabilitar IA" : "Habilitar IA"}
+                  <p className="hidden md:inline">
+                    {isAIEnabled ? "Desabilitar IA" : "Habilitar IA"}
+                  </p>
                 </Button>
 
                 <Button variant="outline" size="sm">
-                  <Trash2Icon className="w-4 h-4 mr-2" />
-                  Excluir conversa
+                  <Trash2Icon className="w-4 h-4 md:mr-2" />
+                  <span className="hidden md:inline">Excluir conversa</span>
                 </Button>
 
                 <Button variant="outline" size="sm">
-                  <MessageSquareOffIcon className="w-4 h-4 mr-2" />
-                  Fechar chat
+                  <MessageSquareOffIcon className="w-4 h-4 md:mr-2" />
+                  <span className="hidden md:inline">Fechar chat</span>
                 </Button>
 
                 <Select>
@@ -260,7 +269,7 @@ export default function ChatLayout() {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="w-[90vw] md:w-full flex-1 overflow-y-auto p-4">
               {activeMessages.map((message, index) => (
                 <div
                   key={index}

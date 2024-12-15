@@ -59,7 +59,7 @@ export default function CreateTeamFrom() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col md:flex-row items-center gap-4">
         <div className="flex flex-col w-full max-w-sm gap-1.5">
           <Label htmlFor="teamName">Nome da Equipe</Label>
           <Input

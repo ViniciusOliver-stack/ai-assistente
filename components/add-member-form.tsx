@@ -54,7 +54,7 @@ export default function AddMemberForm() {
 
   return (
     <form onSubmit={handleAddMember} className="space-y-4">
-      <div className="flex gap-4">
+      <div className="flex flex-col md:flex-row gap-4">
         <div className="grid w-full max-w-sm items-center gap-1.5">
           <Label htmlFor="memberEmail">Email</Label>
           <Input

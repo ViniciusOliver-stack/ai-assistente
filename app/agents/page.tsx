@@ -61,7 +61,7 @@ export default function Agents() {
 
   return (
     <section>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 md:gap-0 md:flex-row md:items-center md:justify-between">
         <div>
           <Title
             title="Agentes"

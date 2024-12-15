@@ -25,9 +25,9 @@ export default function AgentDetails({ params }: { params: { id: string } }) {
 
       <Tabs
         defaultValue="panel"
-        className="flex flex-col items-center justify-center"
+        className="flex flex-col md:items-center md:justify-center max-w-full px-1"
       >
-        <TabsList className="gap-8 items-start">
+        <TabsList className="items-start flex-wrap w-full md:flex-row md:gap-8">
           <TabsTrigger value="panel">
             <LaptopIcon size={18} />
             Visão Geral
@@ -51,31 +51,30 @@ export default function AgentDetails({ params }: { params: { id: string } }) {
           </TabsTrigger>
         </TabsList>
 
-        <div className="w-full h-[1px] bg-neutral-800 mt-6" />
+        <div className="w-full h-[1px] bg-neutral-200 mt-3 md:mt-6" />
 
-        <TabsContent className="w-full pt-8" value="panel">
+        <TabsContent className="w-full pt-6 md:pt-8" value="panel">
           <PanelAgents id={id} />
         </TabsContent>
-        <TabsContent className="w-full pt-8" value="chat">
+        <TabsContent
+          className="max-w-[100vw] md:w-full pt-6 md:pt-8"
+          value="chat"
+        >
           <ChatLayout />
         </TabsContent>
-        <TabsContent className="w-full pt-8" value="model">
+        <TabsContent className="w-full pt-6 md:pt-8" value="model">
           <ModelAgents />
         </TabsContent>
-        <TabsContent className="w-full pt-8" value="prompt">
+        <TabsContent className="w-full pt-6 md:pt-8" value="prompt">
           <ModelsPrompt />
         </TabsContent>
-        <TabsContent className="w-full pt-8" value="setting-public">
+        <TabsContent className="w-full pt-6 md:pt-8" value="setting-public">
           <SettingPublic
             agentId="3dd65dc1-d054-47fb-89d5-0e7f44974f4f"
             teamId="cm40jdsgd0002g0m7tqs2ynnt"
           />
         </TabsContent>
       </Tabs>
-
-      {/* <section className="mt-4">
-        <h1>Editar Agente: {agent.title}</h1>
-      </section> */}
     </section>
   )
 }

@@ -463,9 +463,9 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
 
   return (
     <section className="">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between ">
         <div>
-          <h1 className="text-lg font-medium">Whatsapp</h1>
+          <h1 className="text-lg font-medium">WhatsApp</h1>
           <p className="text-sm text-gray-500">
             Conecte seu WhatsApp ao seu Agente para receber e enviar mensagens
           </p>
@@ -474,7 +474,7 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button
-              className="hover:bg-blue-500 transition-all delay-100"
+              className="hover:bg-blue-500 transition-all delay-100 mt-4 md:mt-0"
               disabled={!!dbInstance}
             >
               Conectar conta
