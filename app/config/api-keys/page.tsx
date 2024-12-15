@@ -59,7 +59,7 @@ export default function ApiKeysPage() {
   }
 
   return (
-    <div className="w-[80%] mx-auto">
+    <section>
       <Header title="Chaves de API" description="Gerencie suas chaves de API" />
 
       <section className="">
@@ -130,6 +130,6 @@ export default function ApiKeysPage() {
           </section>
         </div>
       </section>
-    </div>
+    </section>
   )
 }

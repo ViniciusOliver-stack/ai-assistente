@@ -7,7 +7,7 @@ import TeamList from "@/components/team-list"
 
 export default function TeamPage() {
   return (
-    <div className="w-[80%] mx-auto">
+    <section>
       <Header
         title="Organização"
         description="Faça o gerenciamento da sua equipe"
@@ -39,6 +39,6 @@ export default function TeamPage() {
           <TeamList />
         </div>
       </div>
-    </div>
+    </section>
   )
 }

@@ -60,7 +60,7 @@ export default function Agents() {
   }
 
   return (
-    <section className="w-[80%] mx-auto">
+    <section>
       <div className="flex items-center justify-between">
         <div>
           <Title

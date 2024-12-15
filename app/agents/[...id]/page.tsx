@@ -20,7 +20,7 @@ export default function AgentDetails({ params }: { params: { id: string } }) {
   const id = params.id[0]
 
   return (
-    <div className="w-[80%] mx-auto">
+    <section>
       <Title title="Agente" description="Edite e personalize o seu Agente" />
 
       <Tabs
@@ -76,6 +76,6 @@ export default function AgentDetails({ params }: { params: { id: string } }) {
       {/* <section className="mt-4">
         <h1>Editar Agente: {agent.title}</h1>
       </section> */}
-    </div>
+    </section>
   )
 }

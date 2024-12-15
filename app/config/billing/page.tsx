@@ -3,9 +3,9 @@ import Plans from "@/components/plans"
 
 export default function BillingPage() {
   return (
-    <div className="w-[80%] mx-auto">
+    <section>
       <Header title="Meu plano" description="Gerencie o seu plano" />
       <Plans />
-    </div>
+    </section>
   )
 }

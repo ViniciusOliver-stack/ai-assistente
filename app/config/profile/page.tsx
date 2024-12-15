@@ -59,7 +59,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="w-[80%] mx-auto">
+    <section>
       <Header
         title="Minha Conta"
         description="Gerencie as informações da sua conta"
@@ -103,6 +103,6 @@ export default function ProfilePage() {
           </Button>
         </form>
       </div>
-    </div>
+    </section>
   )
 }

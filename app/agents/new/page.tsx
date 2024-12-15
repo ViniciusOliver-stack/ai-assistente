@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 
 export default function NewAgents() {
   return (
-    <section className="w-[80%] mx-auto">
+    <section>
       <header className="space-y-6 mb-6">
         <Link
           href="/agents"
