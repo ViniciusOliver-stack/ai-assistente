@@ -27,7 +27,7 @@ export default function AgentDetails({ params }: { params: { id: string } }) {
         defaultValue="panel"
         className="flex flex-col md:items-center md:justify-center max-w-full px-1"
       >
-        <TabsList className="items-start flex-wrap w-full md:flex-row md:gap-8">
+        <TabsList className="items-start flex-wrap w-full md:flex-row md:gap-8 mt-4">
           <TabsTrigger value="panel">
             <LaptopIcon size={18} />
             Visão Geral
