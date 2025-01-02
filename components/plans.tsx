@@ -123,7 +123,7 @@ export default function Plans() {
               <Button
                 disabled={plan.id === "basic"}
                 type="submit"
-                className="mt-6 text-white py-2 px-4 rounded w-full"
+                className="mt-6 text-white py-2 px-4 rounded w-full dark:text-neutral-900 hover:bg-blue-500 hover:dark:text-white transition-all duration-200 ease-in-out"
               >
                 Assinar Mensal
               </Button>
