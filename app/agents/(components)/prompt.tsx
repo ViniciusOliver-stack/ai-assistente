@@ -15,13 +15,20 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { usePathname } from "next/navigation"
-import { updatePrompt, getPromptById } from "@/app/_actions/prompt"
+import {
+  updatePrompt,
+  getPromptById,
+  getTemplateByName,
+} from "@/app/_actions/prompt"
 import { useToast } from "@/hooks/use-toast"
 
 export function ModelsPrompt() {
   const pathname = usePathname()
   const { toast } = useToast()
   const agentId = pathname.split("/").pop()
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [selectModelPrompt, setSelectModelPrompt] = useState<string>("")
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [promptData, setPromptData] = useState({
     whoIsAgent: "",
     whatAgentDoes: "",
@@ -37,24 +44,91 @@ export function ModelsPrompt() {
         const prompt = await getPromptById(agentId)
         if (prompt) {
           const { prompt: savedPrompt } = prompt
-
-          // Aqui você pode processar o savedPrompt para extrair cada campo com base nas tags
-          setPromptData({
-            whoIsAgent: extractFromTag(savedPrompt as string, "identidade"),
-            whatAgentDoes: extractFromTag(savedPrompt as string, "funcao"),
-            agentObjective: extractFromTag(savedPrompt as string, "objetivo"),
-            agentResponseStyle: extractFromTag(savedPrompt as string, "estilo"),
-            customRules: extractFromTag(
-              savedPrompt as string,
-              "regras-personalizadas"
-            ),
-          })
+          updatePromptFields(savedPrompt as string)
         }
       }
     }
 
     fetchPrompt()
   }, [agentId])
+
+  const updatePromptFields = (promptContent: string) => {
+    setPromptData({
+      whoIsAgent: extractFromTag(promptContent, "identidade"),
+      whatAgentDoes: extractFromTag(promptContent, "funcao"),
+      agentObjective: extractFromTag(promptContent, "objetivo"),
+      agentResponseStyle: extractFromTag(promptContent, "estilo"),
+      customRules: extractFromTag(promptContent, "regras-personalizadas"),
+    })
+  }
+
+  // const handleSavePrompt = async () => {
+  //   const formattedPrompt = formatPrompt(
+  //     promptData.whoIsAgent,
+  //     promptData.whatAgentDoes,
+  //     promptData.agentObjective,
+  //     promptData.agentResponseStyle,
+  //     promptData.customRules
+  //   )
+
+  //   const fetchPrompt = await updatePrompt(agentId as string, {
+  //     prompt: formattedPrompt,
+  //   })
+
+  //   if (fetchPrompt) {
+  //     toast({
+  //       title: "Prompt salvo com sucesso!",
+  //       description: "Seu prompt foi salvo com sucesso.",
+  //     })
+  //   } else {
+  //     toast({
+  //       title: "Erro ao salvar prompt",
+  //       description: "Ocorreu um erro ao salvar o prompt.",
+  //       variant: "destructive",
+  //     })
+  //   }
+  // }
+
+  // Função para extrair conteúdo baseado na tag
+  const extractFromTag = (content: string, tag: string): string => {
+    const regex = new RegExp(`<${tag}>([\\s\\S]*?)<\/${tag}>`, "i")
+    const match = content.match(regex)
+    return match ? match[1].trim() : ""
+  }
+
+  // Função para definir o modelo ao clicar no botão
+  const handleModelSelect = async (model: string) => {
+    try {
+      setSelectModelPrompt(model)
+      const template = await getTemplateByName(model)
+
+      if (template?.prompt) {
+        const updatedPrompt = await updatePrompt(agentId as string, {
+          prompt: template.prompt,
+        })
+
+        if (updatedPrompt) {
+          // Atualiza os campos do formulário com o novo template
+          updatePromptFields(template.prompt)
+
+          toast({
+            title: "Template importado com sucesso!",
+            description: "Seu template foi importado com sucesso.",
+          })
+
+          // Fecha o modal
+          setIsDialogOpen(false)
+        }
+      }
+    } catch (error) {
+      console.log("Erro ao importar template:", error)
+      toast({
+        title: "Erro ao importar template",
+        description: "Ocorreu um erro ao importar o template.",
+        variant: "destructive",
+      })
+    }
+  }
 
   const handleSavePrompt = async () => {
     const formattedPrompt = formatPrompt(
@@ -83,21 +157,14 @@ export function ModelsPrompt() {
     }
   }
 
-  // Função para extrair conteúdo baseado na tag
-  const extractFromTag = (content: string, tag: string): string => {
-    const regex = new RegExp(`<${tag}>([\\s\\S]*?)<\/${tag}>`, "i")
-    const match = content.match(regex)
-    return match ? match[1].trim() : ""
-  }
-
   return (
-    <section>
+    <section className="h-full">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium bg-zinc-300 px-2 py-1 rounded-md">
           Simplificado
         </h2>
 
-        <Dialog>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger className="flex items-center gap-1.5 hover:text-blue-500 transition-all duration-200">
             <FolderDownIcon size={18} /> Importar templates
           </DialogTrigger>
@@ -110,20 +177,24 @@ export function ModelsPrompt() {
             </DialogHeader>
 
             <div className="flex flex-wrap gap-2">
-              <Button className="hover:bg-blue-500 w-fit">Agents AI</Button>
-              <Button className="hover:bg-blue-500 w-fit">
-                Suporte ao cliente
-              </Button>
-              <Button className="hover:bg-blue-500 w-fit">
-                Recuperar venda
-              </Button>
-              <Button className="hover:bg-blue-500 w-fit">RH</Button>
-              <Button className="hover:bg-blue-500 w-fit">Marketing</Button>
-              <Button className="hover:bg-blue-500 w-fit">SDR</Button>
-              <Button className="hover:bg-blue-500 w-fit">Closer</Button>
-              <Button className="hover:bg-blue-500 w-fit">
-                Sucesso do cliente
-              </Button>
+              {[
+                "Agents AI",
+                "Suporte ao cliente",
+                "Recuperar venda",
+                "RH",
+                "Marketing",
+                "SDR",
+                "Closer",
+                "Sucesso do cliente",
+              ].map((model) => (
+                <Button
+                  key={model}
+                  className="w-fit dark:text-neutral-900 hover:bg-blue-500 hover:dark:text-white transition-all duration-200 ease-in-out"
+                  onClick={() => handleModelSelect(model)}
+                >
+                  {model}
+                </Button>
+              ))}
             </div>
           </DialogContent>
         </Dialog>
@@ -210,7 +281,11 @@ export function ModelsPrompt() {
             />
           </div>
 
-          <Button onClick={handleSavePrompt} type="button">
+          <Button
+            onClick={handleSavePrompt}
+            type="button"
+            className="dark:text-neutral-900 hover:bg-blue-500 hover:dark:text-white transition-all duration-200 ease-in-out"
+          >
             Salvar
           </Button>
         </form>
