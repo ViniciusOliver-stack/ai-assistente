@@ -1,61 +1,183 @@
 "use client"
 
 import { Header } from "@/components/header"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import useTeamStore from "@/store/team-store"
 import Image from "next/image"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+
+interface ApiKey {
+  id: string
+  key: string
+  provider: string
+  teamId: string
+}
 
 export default function ApiKeysPage() {
-  const [openAiKey, setOpenAiKey] = useState("")
-  const [groqAiKey, setGroqAiKey] = useState("")
-  const [isSavingOpenAi, setIsSavingOpenAi] = useState(false)
-  const [isSavingGroqAi, setIsSavingGroqAi] = useState(false)
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState<Record<string, boolean>>({})
+  const [editableKeys, setEditableKeys] = useState<Record<string, string>>({})
+  const [isEditing, setIsEditing] = useState<Record<string, boolean>>({})
 
-  const selectedTemId = useTeamStore((state) => state.selectedTeamId)
-
+  const selectedTeamId = useTeamStore((state) => state.selectedTeamId)
   const { toast } = useToast()
 
-  const handleSaveApiKey = async (provider: string, apiKey: string) => {
+  useEffect(() => {
+    if (selectedTeamId) {
+      fetchApiKeys()
+    }
+  }, [selectedTeamId])
+
+  const fetchApiKeys = async () => {
     try {
-      if (!selectedTemId) {
-        toast({
-          title: "Selecione a equipe primeiro",
-          description:
-            "Você precisa selecionar uma equipe antes de salvar a API Key.",
-          variant: "destructive",
+      const response = await fetch(`/api/keys?teamId=${selectedTeamId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setApiKeys(data)
+        // Initialize editable states
+        const initialEditableKeys: Record<string, string> = {}
+        data.forEach((key: ApiKey) => {
+          initialEditableKeys[key.provider] = ""
         })
-        return
+        setEditableKeys(initialEditableKeys)
       }
+    } catch (error) {
+      console.error("Error fetching API keys:", error)
+      toast({
+        title: "Erro ao carregar as chaves",
+        description: "Não foi possível carregar as chaves de API.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-      const isSaving =
-        provider === "OpenAI" ? setIsSavingOpenAi : setIsSavingGroqAi
-      isSaving(true)
+  const maskApiKey = (key: string) => {
+    return `${key.substring(0, 4)}${"*".repeat(key.length - 8)}${key.substring(
+      key.length - 4
+    )}`
+  }
 
-      const response = await fetch("/api/keys", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+  console.log(apiKeys)
+  console.log("Editable Keys:", editableKeys)
+
+  const handleSaveApiKey = async (provider: string, apiKey: string) => {
+    if (!selectedTeamId) {
+      toast({
+        title: "Selecione a equipe primeiro",
+        description:
+          "Você precisa selecionar uma equipe antes de salvar a API Key.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsSaving({ ...isSaving, [provider]: true })
+
+    try {
+      const existingKey = apiKeys.find((key) => key.provider === provider)
+      console.log("Existing Key:", existingKey)
+      const method = existingKey ? "PUT" : "POST"
+      const url = existingKey ? `/api/keys/${existingKey.id}` : "/api/keys"
+
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          selectedTemId,
+          selectedTeamId,
           provider,
           apiKey,
         }),
       })
 
       if (response.ok) {
+        await fetchApiKeys()
+        setIsEditing({ ...isEditing, [provider]: false })
+        setEditableKeys({ ...editableKeys, [provider]: "" })
         toast({
           title: "API Key salva com sucesso",
-          description: `A API Key do ${provider} foi salva com sucesso.`,
+          description: `A API Key do ${provider} foi ${
+            existingKey ? "atualizada" : "salva"
+          } com sucesso.`,
         })
-      } else {
-        const error = await response.json()
-        console.error(`Erro ao salvar a API Key do ${provider}:`, error)
       }
     } catch (error) {
       console.error(`Erro ao salvar a API Key do ${provider}:`, error)
+      toast({
+        title: "Erro ao salvar",
+        description: `Não foi possível salvar a API Key do ${provider}.`,
+        variant: "destructive",
+      })
+    } finally {
+      setIsSaving({ ...isSaving, [provider]: false })
     }
+  }
+
+  const renderApiKeySection = (provider: string, logoSrc: string) => {
+    const existingKey = apiKeys.find((key) => key.provider === provider)
+    const isEditingThis = isEditing[provider]
+    const isSavingThis = isSaving[provider]
+
+    return (
+      <section className="w-full flex flex-col rounded-md border border-gray-300">
+        <header className="p-4 flex items-center justify-between gap-2 bg-zinc-300 rounded-t-md">
+          <Image
+            src={logoSrc}
+            width={1000}
+            height={1000}
+            alt={`logo ${provider}`}
+            className="w-auto h-6"
+          />
+        </header>
+
+        <div className="w-full px-3 flex items-center justify-between gap-2 rounded-lg py-3 border-none">
+          {existingKey && !isEditingThis ? (
+            <>
+              <Input
+                type="text"
+                value={maskApiKey(existingKey.key)}
+                disabled
+                className="focus:outline-none flex-1"
+              />
+              <Button
+                onClick={() => setIsEditing({ ...isEditing, [provider]: true })}
+                className="dark:text-neutral-900 hover:bg-blue-500 hover:dark:text-white"
+              >
+                Editar
+              </Button>
+            </>
+          ) : (
+            <>
+              <Input
+                type="text"
+                placeholder={provider}
+                value={editableKeys[provider]}
+                onChange={(e) =>
+                  setEditableKeys({
+                    ...editableKeys,
+                    [provider]: e.target.value,
+                  })
+                }
+                className="focus:outline-none flex-1"
+              />
+              <Button
+                onClick={() =>
+                  handleSaveApiKey(provider, editableKeys[provider])
+                }
+                disabled={isSavingThis}
+                className="dark:text-neutral-900 hover:bg-blue-500 hover:dark:text-white"
+              >
+                {isSavingThis ? "Salvando..." : "Salvar"}
+              </Button>
+            </>
+          )}
+        </div>
+      </section>
+    )
   }
 
   return (
@@ -71,63 +193,14 @@ export default function ApiKeysPage() {
         </header>
 
         <div className="flex flex-col gap-5 mt-8">
-          <section className="w-full flex flex-col rounded-md border border-gray-300">
-            <header className="p-4 flex items-center justify-between gap-2 bg-zinc-300 rounded-t-md">
-              <Image
-                src="/OpenAI_light.svg"
-                width={1000}
-                height={1000}
-                alt="logo openAi"
-                className="w-auto h-6 fill-surface-color-12"
-              />
-            </header>
-
-            <div className="w-full px-5 flex items-center justify-between gap-2 rounded-lg py-3 border-none">
-              <input
-                type="text"
-                placeholder="OpenAI"
-                value={openAiKey}
-                onChange={(e) => setOpenAiKey(e.target.value)}
-                className="focus:outline-none flex-1"
-              />
-              <button
-                onClick={() => handleSaveApiKey("OpenAI", openAiKey)}
-                disabled={isSavingOpenAi}
-                className="hover:text-blue-500 transition-all duration-200"
-              >
-                {isSavingOpenAi ? "Salvando..." : "Salvar"}
-              </button>
-            </div>
-          </section>
-
-          <section className="w-full flex flex-col rounded-md border border-gray-300">
-            <header className="p-4 flex items-center justify-between gap-2 bg-zinc-300 rounded-t-md">
-              <Image
-                src="/Groq_light.svg"
-                width={1000}
-                height={1000}
-                alt="logo openAi"
-                className="w-auto h-6 fill-surface-color-12"
-              />
-            </header>
-
-            <div className="w-full px-5 flex items-center justify-between gap-2 rounded-lg py-3 border-none">
-              <input
-                type="text"
-                placeholder="GroqAI"
-                value={groqAiKey}
-                onChange={(e) => setGroqAiKey(e.target.value)}
-                className="focus:outline-none flex-1"
-              />
-              <button
-                onClick={() => handleSaveApiKey("GroqAI", groqAiKey)}
-                disabled={isSavingGroqAi}
-                className="hover:text-blue-500 transition-all duration-200"
-              >
-                {isSavingGroqAi ? "Salvando..." : "Salvar"}
-              </button>
-            </div>
-          </section>
+          {isLoading ? (
+            <div>Carregando...</div>
+          ) : (
+            <>
+              {renderApiKeySection("OpenAI", "/OpenAI_light.svg")}
+              {renderApiKeySection("GroqAI", "/Groq_light.svg")}
+            </>
+          )}
         </div>
       </section>
     </section>
