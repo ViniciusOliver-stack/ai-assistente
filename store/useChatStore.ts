@@ -16,6 +16,7 @@ interface ChatStore {
   setNewMessage: (message: string) => void
   handleAIResponse: (clientMessageText: string, agentId: string) => Promise<void>
   sendManualMessage: (text: string, phoneNumber: string) => Promise<void>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   formatMessage: (messageData: any) => Message
 }
 
