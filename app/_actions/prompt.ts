@@ -17,3 +17,9 @@ export async function updatePrompt(id: string, data: any) {
 
     return prompt
 }
+
+export async function getTemplateByName(name: string) {
+    return await db.promptModels.findFirst({
+        where: { agentName: name },
+    })
+}
