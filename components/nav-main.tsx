@@ -31,7 +31,12 @@ export function NavMain() {
   const pathname = usePathname()
 
   const isActiveRoute = (itemUrl: string) => {
-    return pathname.startsWith(itemUrl)
+    // Verifica se o itemUrl é "/config/profile" e se o pathname atual começa com "/config/"
+    if (itemUrl === "/config/profile") {
+      return pathname.startsWith("/config/")
+    } else {
+      return pathname.startsWith(itemUrl)
+    }
   }
 
   return (
