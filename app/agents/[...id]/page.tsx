@@ -96,7 +96,11 @@ export default function AgentDetails({ params }: { params: { id: string } }) {
           className="max-w-[100vw] md:w-full pt-6 md:pt-8"
           value="chat"
         >
-          <ChatLayout />
+          <ChatLayout
+          // instanceId="b3d522d4-8708-48c9-b55d-6bbc93531fff"
+          // teamId="cm578za6z0008q3a8fufu6y1j"
+          // agentId="gsk_2IszyB5xTBVJjWpJEiGSWGdyb3FYLsHPYRYHqSKjQaoKuJ1Jz9I41b9oub1g"
+          />
         </TabsContent>
         <TabsContent className="w-full pt-6 md:pt-8" value="model">
           <ModelAgents />
@@ -106,8 +110,8 @@ export default function AgentDetails({ params }: { params: { id: string } }) {
         </TabsContent>
         <TabsContent className="w-full pt-6 md:pt-8" value="setting-public">
           <SettingPublic
-            agentId="3dd65dc1-d054-47fb-89d5-0e7f44974f4f"
-            teamId="cm40jdsgd0002g0m7tqs2ynnt"
+            agentId="gsk_2IszyB5xTBVJjWpJEiGSWGdyb3FYLsHPYRYHqSKjQaoKuJ1Jz9I41b9oub1g"
+            teamId="cm578za6z0008q3a8fufu6y1j"
           />
         </TabsContent>
       </Tabs>
