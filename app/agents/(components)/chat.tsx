@@ -30,6 +30,23 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+// type Message = {
+//   id: string
+//   text: string
+//   sender: string
+//   timestamp: Date
+//   metadata?: {
+//     isAIResponse?: boolean
+//     instanceName?: string
+//   }
+// }
+
+// type ChatProps = {
+//   instanceId: string
+//   teamId: string
+//   agentId: string
+// }
+
 export default function ChatLayout() {
   //const pathname = usePathname()
   // const agentId = pathname.split("/")[2]
@@ -173,7 +190,7 @@ export default function ChatLayout() {
     <div className="flex h-[calc(100vh_-_7rem)] border rounded-lg overflow-hidden">
       {/* Lista de chats */}
       <div
-        className={`w-full md:w-1/4 bg-white border-r border-gray-200 ${
+        className={`w-full md:w-1/4 bg-white dark:bg-neutral-950 border-r border-gray-200 ${
           activeChat && !isMobileListView ? "hidden md:block" : "block"
         }`}
       >
@@ -182,20 +199,22 @@ export default function ChatLayout() {
             <div
               key={chat.id}
               className={`p-3 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors ${
-                activeChat === chat.id ? "bg-gray-100" : ""
+                activeChat === chat.id ? "bg-gray-100 dark:bg-zinc-800" : ""
               }`}
               onClick={() => handleChatSelect(chat.id)}
             >
               <div className="flex items-center gap-3">
                 <div className="flex-1">
                   <div className="flex justify-between items-center">
-                    <span className="font-medium">{chat.name}</span>
-                    <span className="text-[10px] text-gray-500">
+                    <span className="font-medium dark:text-white">
+                      {chat.name}
+                    </span>
+                    <span className="text-[10px] text-gray-500 dark:text-gray-200">
                       {formatTimestamp(chat.timestamp)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <p className="text-sm text-gray-600 truncate max-w-[180px]">
+                    <p className="text-sm text-gray-600 truncate max-w-[180px] dark:text-gray-100">
                       {chat.lastMessage}
                     </p>
                     {chat.unreadCount > 0 && (
@@ -213,13 +232,13 @@ export default function ChatLayout() {
 
       {/* Área de mensagens */}
       <div
-        className={`flex-1 flex flex-col bg-gray-50 ${
+        className={`flex-1 flex flex-col bg-gray-50 dark:bg-neutral-900 ${
           activeChat && !isMobileListView ? "block" : "hidden md:block"
         }`}
       >
         {activeChat ? (
           <>
-            <div className="bg-white p-4 shadow-sm flex justify-between items-center">
+            <div className="bg-white dark:bg-neutral-900 p-4 shadow-sm flex justify-between items-center">
               <div className="md:hidden">
                 <Button
                   variant="ghost"
@@ -234,6 +253,7 @@ export default function ChatLayout() {
                   variant="outline"
                   size="sm"
                   onClick={() => setIsAIEnabled(!isAIEnabled)}
+                  className="dark:bg-transparent dark:hover:bg-blue-500 dark:text-white hover:bg-blue-500 hover:text-white transition-all duration-200 ease-in-out"
                 >
                   {isAIEnabled ? (
                     <BotOff className="w-4 h-4 md:mr-2" />
@@ -245,18 +265,26 @@ export default function ChatLayout() {
                   </p>
                 </Button>
 
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="dark:bg-transparent dark:hover:bg-blue-500 dark:text-white hover:bg-blue-500 hover:text-white transition-all duration-200 ease-in-out"
+                >
                   <Trash2Icon className="w-4 h-4 md:mr-2" />
                   <span className="hidden md:inline">Excluir conversa</span>
                 </Button>
 
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="dark:bg-transparent dark:hover:bg-blue-500 dark:text-white hover:bg-blue-500 hover:text-white transition-all duration-200 ease-in-out"
+                >
                   <MessageSquareOffIcon className="w-4 h-4 md:mr-2" />
                   <span className="hidden md:inline">Fechar chat</span>
                 </Button>
 
                 <Select>
-                  <SelectTrigger className="w-fit h-[33px]">
+                  <SelectTrigger className="w-fit h-[33px] dark:bg-transparent dark:hover:bg-blue-500 dark:text-white hover:bg-blue-500 hover:text-white transition-all duration-200 ease-in-out">
                     <SelectValue placeholder="Responsável" />
                   </SelectTrigger>
                   <SelectContent>
@@ -291,7 +319,7 @@ export default function ChatLayout() {
                       className={`py-2 px-4 rounded-xl ${
                         message.sender === "ai"
                           ? "bg-blue-500 text-white"
-                          : "bg-white"
+                          : "bg-white dark:bg-neutral-800"
                       }`}
                     >
                       {message.sender === "ai" ? (
@@ -308,7 +336,9 @@ export default function ChatLayout() {
                             : "text-neutral-900"
                         } text-[10px] text-gray-500 text-right mt-1`}
                       >
-                        {formatTimestampToTime(message.timestamp)}
+                        <span className="dark:text-white">
+                          {formatTimestampToTime(message.timestamp)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -318,7 +348,7 @@ export default function ChatLayout() {
             </div>
 
             {!isAIEnabled && (
-              <div className="p-4 bg-white border-t">
+              <div className="p-4 bg-white border-t dark:bg-neutral-900">
                 <div className="flex gap-2">
                   <textarea
                     value={newMessage}
