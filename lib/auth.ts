@@ -11,7 +11,7 @@ export const authOptions: AuthOptions = {
         signOut: "/auth",
         error: "/auth",
         verifyRequest: "/auth",
-        newUser: "/app"
+        newUser: "/dashboard"
     },
     adapter: PrismaAdapter(db) as Adapter,
     providers: [
