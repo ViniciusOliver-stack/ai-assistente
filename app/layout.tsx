@@ -4,6 +4,7 @@ import Provider from "@/components/providers"
 import { Toaster } from "@/components/ui/toaster"
 import { Poppins } from "next/font/google"
 import { WebSocketProvider } from "./context/WebSocketContext"
+import ThemeProviderWrapper from "@/components/theme-provider-wrapper"
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -28,7 +29,9 @@ export default function RootLayout({
       <body className={`${poppins.className} antialiased`}>
         <Toaster />
         <WebSocketProvider>
-          <Provider>{children}</Provider>
+          <ThemeProviderWrapper>
+            <Provider>{children}</Provider>
+          </ThemeProviderWrapper>
         </WebSocketProvider>
       </body>
     </html>
