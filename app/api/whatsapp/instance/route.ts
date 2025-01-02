@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
       },
       update: {
         status: data.status,
+        displayName: data.displayName,
         apiKey: data.apiKey || null,
         webhookUrl: data.webhookUrl,
         // Include these fields in update to ensure they're updated if needed
@@ -30,6 +31,7 @@ export async function POST(req: NextRequest) {
       },
       create: {
         instanceName: data.instanceName,
+        displayName: data.displayName,
         instanceId: data.instanceId,
         status: data.status,
         apiKey: data.apiKey || null,
