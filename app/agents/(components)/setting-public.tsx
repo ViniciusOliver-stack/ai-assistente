@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { TrashIcon } from "lucide-react"
+import { v4 as uuidv4 } from "uuid"
 
 interface WhatsAppProfile {
   owner?: string
@@ -42,6 +43,7 @@ interface InstanceData {
 interface WhatsAppInstance extends WhatsAppProfile {
   instance: {
     instanceName: string
+    displayName: string
     instanceId: string
     status: string
     serverUrl: string
@@ -89,8 +91,17 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
   const [dbInstance, setDbInstance] = useState<DBWhatsAppInstance | null>(null)
   const pendingInstanceRef = useRef<WhatsAppInstance | null>(null)
 
+  // Armazena o nome completo da instância (com UUID) em uma ref para persistência
+  const instanceNameRef = useRef<string | null>(null)
+
   const handleInputInstance = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInstanceValue(event.target.value)
+    const cleanName = event.target.value.split("_")[0]
+    setInstanceValue(cleanName)
+  }
+
+  const generateInstanceName = (baseName: string) => {
+    const uuid = uuidv4()
+    return `${baseName}_${uuid}`
   }
 
   function generateUniqueToken(): string {
@@ -133,6 +144,7 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
         },
         body: JSON.stringify({
           instanceName: instanceData.instance.instanceName,
+          displayName: instanceData.instance.displayName,
           instanceId: instanceData.instance.instanceId,
           status: instanceData.instance.status,
           apiKey: instanceData.instance.apikey,
@@ -179,8 +191,10 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
       )
       const instances: InstanceData[] = await response.json()
 
+      console.log("Instancia Ref, PEGOU O VALOR??: ", instanceNameRef.current)
+
       const targetInstance = instances.find(
-        (inst) => inst.instance.instanceName === instanceValue
+        (inst) => inst.instance.instanceName === instanceNameRef.current
       )
 
       console.log("Nome da instancia:", targetInstance)
@@ -231,7 +245,9 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
     try {
       // Delete from external API
       await fetch(
-        `https://symplus-evolution.3g77fw.easypanel.host/instance/delete/${instanceValue}`,
+        `https://symplus-evolution.3g77fw.easypanel.host/instance/delete/${
+          instance!.instance.instanceName
+        }`,
         {
           method: "DELETE",
           headers: {
@@ -275,7 +291,7 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
     }
 
     // Reinicia o contador para 30 segundos
-    setRemainingTime(30)
+    setRemainingTime(2)
     setConnectionStatus("waiting")
 
     // Inicia um novo intervalo
@@ -352,6 +368,9 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
     setConnectionStatus("waiting")
 
     try {
+      const uniqueInstanceName = generateInstanceName(instanceValue)
+      instanceNameRef.current = uniqueInstanceName
+
       const response = await fetch(
         "https://symplus-evolution.3g77fw.easypanel.host/instance/create",
         {
@@ -362,7 +381,7 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
               "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ",
           },
           body: JSON.stringify({
-            instanceName: instanceValue,
+            instanceName: uniqueInstanceName,
             token: token,
             qrcode: true,
             integration: "WHATSAPP-BAILEYS",
@@ -407,7 +426,12 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
 
       // Armazena os dados da instância para salvar posteriormente
       if (data.instance) {
-        pendingInstanceRef.current = { instance: data.instance }
+        const instanceData = {
+          ...data.instance,
+          displayName: instanceValue, // Store original name for display
+          instanceName: uniqueInstanceName, // Store full name with UUID
+        }
+        pendingInstanceRef.current = { instance: instanceData }
       }
 
       if (data.qrcode?.base64) {
@@ -474,7 +498,7 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button
-              className="hover:bg-blue-500 transition-all delay-100 mt-4 md:mt-0"
+              className="hover:bg-blue-500 transition-all delay-100 mt-4 md:mt-0 dark:text-neutral-900 disabled:dark:text-neutral-900 hover:dark:text-white duration-200 ease-in-out"
               disabled={!!dbInstance}
             >
               Conectar conta
@@ -503,7 +527,7 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
               <Button
                 onClick={fetchCreateConnection}
                 disabled={!instanceValue || isLoading}
-                className="mt-2 w-full"
+                className="mt-2 w-full dark:text-neutral-900 hover:bg-blue-500 hover:dark:text-white transition-all duration-200 ease-in-out"
               >
                 {isLoading ? "Carregando..." : "Conectar"}
               </Button>
@@ -547,8 +571,8 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
       </div>
 
       {instance && (
-        <div className="bg-white py-4 px-10 ring-1 ring-slate-900/5 rounded-lg shadow-lg w-full flex items-center justify-between mt-8">
-          <p>{instance.instance.instanceName}</p>
+        <div className="bg-white dark:bg-transparent py-4 px-10 ring-1 ring-slate-900/5 rounded-lg shadow-lg dark:shadow-sm dark:shadow-black/90 w-full flex items-center justify-between mt-8">
+          <p>{instance.instance.instanceName.split("_")[0]}</p>
           <div className="flex gap-2">
             <div className="flex items-center justify-center gap-1.5 w-full">
               <div className="relative flex h-2 w-2">
