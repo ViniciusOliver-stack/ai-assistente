@@ -5,7 +5,7 @@ import { ModelListResponse } from "groq-sdk/resources/models.mjs";
 
 export default async function getListGroqAi(): Promise<ModelListResponse> {
     const groq = new Groq({
-        apiKey: "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",
+        apiKey: "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",
     })
 
     const models = await groq.models.list();
