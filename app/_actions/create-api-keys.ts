@@ -1,11 +1,18 @@
 "use server"
 
+import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db"
+import { getServerSession } from "next-auth";
 
 export async function SaveApiKeys(selectedTeamId: string, provider: string, apiKey: string) {
+
+    const user = await getServerSession(authOptions)
+    
+    if(!user) {
+        throw new Error("Usuário não autenticado")
+    }
     
     console.log("Selected Team ID:", selectedTeamId);
-
 
     try {
         const newApiKey = await db.apiKey.create({
