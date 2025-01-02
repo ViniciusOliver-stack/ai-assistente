@@ -73,10 +73,14 @@ export default function AddMemberForm() {
             id="role"
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+            className="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
           >
-            <option value="admin">Administrador</option>
-            <option value="member">Membro</option>
+            <option value="admin" className="bg-white dark:bg-black">
+              Administrador
+            </option>
+            <option value="member" className="bg-white dark:bg-black">
+              Membro
+            </option>
           </select>
         </div>
       </div>
@@ -84,7 +88,7 @@ export default function AddMemberForm() {
       <Button
         type="submit"
         disabled={isAdding || !email}
-        className="text-white hover:bg-blue-500 transition-all delay-100"
+        className="text-white hover:bg-blue-500 delay-100 dark:text-neutral-900 disabled:dark:text-neutral-900 hover:dark:text-white transition-all duration-200 ease-in-out"
       >
         {isAdding ? "Adicionando..." : "Adicionar Membro"}
       </Button>
