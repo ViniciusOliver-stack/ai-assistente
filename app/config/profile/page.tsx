@@ -65,7 +65,7 @@ export default function ProfilePage() {
         description="Gerencie as informações da sua conta"
       />
 
-      <div className="space-y-8">
+      <div className="space-y-8 px-2">
         <div>
           <h3 className="text-xl">Configurações de perfil</h3>
           <p className="text-gray-400 text-sm">

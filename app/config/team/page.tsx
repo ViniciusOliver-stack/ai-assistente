@@ -24,7 +24,7 @@ export default function TeamPage() {
           <CreateTeamFrom />
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-8 px-2">
           <div>
             <h3 className="text-xl">Membros da equipe</h3>
             <p className="text-gray-400 text-sm">
