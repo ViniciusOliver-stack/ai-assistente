@@ -140,21 +140,18 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       get().addMessage(message)
       
       await fetch(
-        "https://symplus-evolution.3g77fw.easypanel.host/message/sendText/SymplusTalk",
+        "https://evolution.rubnik.com/message/sendText/Rubnik",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            apikey: "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ",
+            apikey: "qbTMAT9bS7VZAXB2WWIL7NW9gL3hY7fn",
           },
           body: JSON.stringify({
             number: phoneNumber,
-            options: {
-              delay: 1200,
-              presence: "composing",
-              linkPreview: true,
-            },
-            textMessage: { text },
+            delay: 1200,
+            linkPreview: true,
+            text,
           }),
         }
       )
