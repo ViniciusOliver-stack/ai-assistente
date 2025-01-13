@@ -27,12 +27,12 @@ export async function POST(req: Request) {
 
         // Envia resposta via API externa
         await fetch(
-            "https://symplus-evolution.3g77fw.easypanel.host/message/sendText/SymplusTalk",
+            "https://evolution.rubnik.com/message/sendText/SymplusTalk",
             {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    apikey: "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ",
+                    apikey: "qbTMAT9bS7VZAXB2WWIL7NW9gL3hY7fn",
                 },
                 body: JSON.stringify({
                     number: "5577988633518",

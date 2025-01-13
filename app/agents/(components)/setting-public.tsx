@@ -179,13 +179,12 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
 
     try {
       const response = await fetch(
-        "https://symplus-evolution.3g77fw.easypanel.host/instance/fetchInstances",
+        "https://evolution.rubnik.com/instance/fetchInstances",
         {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            apikey:
-              "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ",
+            apikey: "qbTMAT9bS7VZAXB2WWIL7NW9gL3hY7fn",
           },
         }
       )
@@ -245,15 +244,14 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
     try {
       // Delete from external API
       await fetch(
-        `https://symplus-evolution.3g77fw.easypanel.host/instance/delete/${
+        `https://evolution.rubnik.com/instance/delete/${
           instance!.instance.instanceName
         }`,
         {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
-            apikey:
-              "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ",
+            apikey: "qbTMAT9bS7VZAXB2WWIL7NW9gL3hY7fn",
           },
         }
       )
@@ -326,13 +324,12 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
 
     try {
       const response = await fetch(
-        `https://symplus-evolution.3g77fw.easypanel.host/instance/connect/${instanceValue}`,
+        `https://evolution.rubnik.com/instance/connect/${instanceValue}`,
         {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            apikey:
-              "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ",
+            apikey: "qbTMAT9bS7VZAXB2WWIL7NW9gL3hY7fn",
           },
         }
       )
@@ -372,13 +369,12 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
       instanceNameRef.current = uniqueInstanceName
 
       const response = await fetch(
-        "https://symplus-evolution.3g77fw.easypanel.host/instance/create",
+        "https://evolution.rubnik.com/instance/create",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            apikey:
-              "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ",
+            apikey: "qbTMAT9bS7VZAXB2WWIL7NW9gL3hY7fn",
           },
           body: JSON.stringify({
             instanceName: uniqueInstanceName,
