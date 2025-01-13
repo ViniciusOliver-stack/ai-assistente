@@ -1,6 +1,6 @@
 import getListGroqAi from "@/app/_actions/(groq)/get-list"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+// import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -17,13 +17,15 @@ import { useEffect, useState } from "react"
 
 import { usePathname } from "next/navigation"
 import { getAgentById, updateAgent } from "@/app/_actions/get-agent"
-import { Spinner } from "@/components/ui/spinner"
+import { getApiKeyByTeamAndProvider } from "@/app/_actions/get-apikey"
+import { TextLoader } from "@/components/ui/loading-text"
 
 interface ModelGroqCloudProps {
   selectedAI: string
+  teamId: string
 }
 
-export function ModelGroqCloud({ selectedAI }: ModelGroqCloudProps) {
+export function ModelGroqCloud({ selectedAI, teamId }: ModelGroqCloudProps) {
   const [temperature, setTemperature] = useState<number>(1.5)
   const [tokenLimit, setTokenLimit] = useState<number>(1024)
   const [models, setModels] = useState<ModelListResponse["data"]>([])
@@ -39,7 +41,6 @@ export function ModelGroqCloud({ selectedAI }: ModelGroqCloudProps) {
     const fetchGroqModels = async () => {
       const listAgents = await getListGroqAi()
       if (listAgents && Array.isArray(listAgents.data)) {
-        console.log(listAgents.data)
         setModels(listAgents.data) // Acesse o array na chave 'data'
       } else {
         console.error("Esperado um array na chave 'data': ", listAgents)
@@ -54,9 +55,13 @@ export function ModelGroqCloud({ selectedAI }: ModelGroqCloudProps) {
         try {
           setIsLoading(true)
           const agentData = await getAgentById(agentId as string)
-          setSelectedModel(agentData?.providerModel as string)
-          setTemperature((agentData?.temperature as number) || 1.5)
-          setTokenLimit((agentData?.limitToken as number) || 1024)
+          const upperCaseProvider = agentData?.provider.toUpperCase()
+
+          if (!agentData?.provider || upperCaseProvider === "GROQ") {
+            setSelectedModel(agentData?.providerModel as string)
+            setTemperature((agentData?.temperature as number) || 1.5)
+            setTokenLimit((agentData?.limitToken as number) || 1024)
+          }
         } catch (error) {
           console.error("Erro ao carregar agente:", error)
         } finally {
@@ -77,24 +82,55 @@ export function ModelGroqCloud({ selectedAI }: ModelGroqCloudProps) {
       return
     }
 
-    const result = await updateAgent(agentId as string, {
-      providerModel: selectedModel,
-      temperature,
-      limitToken: tokenLimit,
-      enterprise: selectedAI,
-    })
+    try {
+      // Buscar a chave API da GROQ
+      const apiKey = await getApiKeyByTeamAndProvider(teamId, "GROQ")
 
-    if (result) {
-      alert("Agente salvo com sucesso")
-    } else {
-      alert("Erro ao salvar o agente")
+      if (!apiKey) {
+        toast({
+          title: "Chave API não encontrada",
+          description:
+            "É necessário configurar uma chave API para a GROQ primeiro",
+          variant: "destructive",
+        })
+        return
+      }
+
+      const result = await updateAgent(agentId as string, {
+        providerModel: selectedModel,
+        temperature,
+        limitToken: tokenLimit,
+        enterprise: selectedAI,
+        provider: "GROQ", // Define explicitamente o provider como GROQ
+        tokenId: apiKey.id, // Associa a chave API ao agente
+      })
+
+      if (result) {
+        toast({
+          title: "Sucesso!",
+          description: "Configurações do agente atualizadas com sucesso",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar as alterações",
+        variant: "destructive",
+      })
+      console.error("Erro ao salvar o agente:", error)
     }
   }
 
   if (isLoading) {
     return (
       <div className="w-full h-auto flex items-center justify-center">
-        <Spinner />
+        <TextLoader
+          messages={[
+            "Preparando o seu modelo",
+            "Preparando a sua experiência",
+            "Quase lá",
+          ]}
+        />
       </div>
     )
   }
@@ -127,7 +163,7 @@ export function ModelGroqCloud({ selectedAI }: ModelGroqCloudProps) {
           step={0.01}
           onValueChange={(value) => setTemperature(value[0])}
         />
-        <p className="text-xs text-gray-500 w-[400px] mt-2">
+        <p className="text-xs text-gray-500 min:w-[400px] w-full mt-2">
           A temperatura é um parâmetro que controla a aleatoriedade e
           criatividade das respostas do modelo. Com temperatura 0, as respostas
           são diretas e previsíveis. Com temperatura 2, as respostas variam
@@ -146,24 +182,24 @@ export function ModelGroqCloud({ selectedAI }: ModelGroqCloudProps) {
           step={1}
           onValueChange={(value) => setTokenLimit(value[0])}
         />
-        <p className="text-xs text-gray-500 w-[400px] mt-2">
+        <p className="text-xs text-gray-500 min:w-[400px] w-full mt-2">
           Limite de tokens é um parâmetro que controla a quantidade de palavras
           gerada pela IA para responder determinado assunto, o recomendado é
           manter em 1024.
         </p>
       </div>
 
-      <div>
+      {/* <div>
         <Label htmlFor="stopAi">Parar Sequência</Label>
         <Input type="text" id="stopAi"></Input>
-        <p className="text-xs text-gray-500 w-[400px] mt-2">
+        <p className="text-xs text-gray-500 min:w-[400px] w-full mt-2">
           Uma sequência de parada é uma sequência de texto predefinida ou
           especificada pelo usuário que sinaliza a uma IA para parar de gerar
           conteúdo, garantindo que suas respostas permaneçam focadas e concisas.
           Exemplos incluem sinais de pontuação e marcadores como
           &quot;[fim]&quot;.
         </p>
-      </div>
+      </div> */}
 
       <Button onClick={handleSave} className="hover:bg-blue-500 w-fit">
         Salvar Alterações
