@@ -36,7 +36,6 @@ export default function ApiKeysPage() {
       const response = await fetch(`/api/keys?teamId=${selectedTeamId}`)
       if (response.ok) {
         const data = await response.json()
-        console.log(data)
         setApiKeys(data)
         // Initialize editable states
         const initialEditableKeys: Record<string, string> = {}
