@@ -36,6 +36,7 @@ export default function ApiKeysPage() {
       const response = await fetch(`/api/keys?teamId=${selectedTeamId}`)
       if (response.ok) {
         const data = await response.json()
+        console.log(data)
         setApiKeys(data)
         // Initialize editable states
         const initialEditableKeys: Record<string, string> = {}
@@ -57,9 +58,12 @@ export default function ApiKeysPage() {
   }
 
   const maskApiKey = (key: string) => {
-    return `${key.substring(0, 4)}${"*".repeat(key.length - 8)}${key.substring(
-      key.length - 4
-    )}`
+    if (key.length <= 8) {
+      return "*".repeat(key.length) // Mascara toda a string se for muito curta
+    }
+    return `${key.substring(0, 4)}${"*".repeat(
+      Math.max(0, key.length - 8)
+    )}${key.substring(key.length - 4)}`
   }
 
   console.log(apiKeys)
@@ -71,6 +75,16 @@ export default function ApiKeysPage() {
         title: "Selecione a equipe primeiro",
         description:
           "Você precisa selecionar uma equipe antes de salvar a API Key.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (apiKey.length < 10) {
+      // ou outro tamanho mínimo apropriado
+      toast({
+        title: "Chave API inválida",
+        description: "A chave API deve ter pelo menos 10 caracteres.",
         variant: "destructive",
       })
       return
