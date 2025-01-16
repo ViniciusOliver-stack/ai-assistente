@@ -29,30 +29,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-
-// type Message = {
-//   id: string
-//   text: string
-//   sender: string
-//   timestamp: Date
-//   metadata?: {
-//     isAIResponse?: boolean
-//     instanceName?: string
-//   }
-// }
-
-// type ChatProps = {
-//   instanceId: string
-//   teamId: string
-//   agentId: string
-// }
+import { Message } from "@/types/chat"
 
 export default function ChatLayout() {
   //const pathname = usePathname()
   // const agentId = pathname.split("/")[2]
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true)
+
   const { toast } = useToast()
   const [isMobileListView, setIsMobileListView] = useState(true)
+  const [combinedMessages, setCombinedMessages] = useState<Message[]>([])
 
   const {
     messages,
@@ -60,29 +48,96 @@ export default function ChatLayout() {
     isLoading,
     newMessage,
     currentChatId,
+    messageHistory,
     setCurrentChatId,
     setIsAIEnabled,
     setNewMessage,
     sendManualMessage,
+    loadMessagesForChat,
   } = useChatStore()
 
   const { chats, activeChat, setActiveChat, addOrUpdateChat } =
     useChatListStore()
 
-  // Filtra as mensagens para o chat ativo
-  const activeMessages = useMemo(() => {
-    return messages.filter(
-      (message) =>
-        message.sender === activeChat ||
-        (message.sender === "ai" && message.messageTo === activeChat)
+  useEffect(() => {
+    if (!activeChat) {
+      setCombinedMessages([])
+      return
+    }
+
+    // Pega o número do telefone do chat ativo
+    const activeChatDetails = chats.find((chat) => chat.id === activeChat)
+    const phoneNumber = activeChatDetails?.phoneNumber
+    if (!phoneNumber) return
+
+    // Normaliza o número de telefone para comparação
+    const normalizedPhone = phoneNumber.replace(/^55/, "")
+
+    // Pega o histórico de mensagens do chat ativo
+    const chatHistory = messageHistory[activeChat] || []
+
+    // Filtra as mensagens em tempo real para este chat específico
+    const realtimeMessages = messages.filter((message) => {
+      if (message.sender === "ai") {
+        // Para mensagens da IA, verifica se o destinatário é o número do chat atual
+        return message.messageTo?.replace(/^55/, "") === normalizedPhone
+      } else {
+        // Para mensagens do usuário, verifica se o remetente é o número do chat atual
+        return message.sender?.replace(/^55/, "") === normalizedPhone
+      }
+    })
+
+    // Combina histórico com mensagens em tempo real
+    const allMessages = [...chatHistory, ...realtimeMessages]
+
+    // Remove duplicatas baseado no ID da mensagem
+    const uniqueMessages = allMessages.filter(
+      (message, index, self) =>
+        index === self.findIndex((m) => m.id === message.id)
     )
-  }, [messages, activeChat])
+
+    // Ordena por timestamp
+    const sortedMessages = uniqueMessages.sort(
+      (a, b) =>
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    )
+
+    setCombinedMessages(sortedMessages)
+  }, [activeChat, messages, messageHistory, chats])
+
+  // Efeito para carregar o histórico quando selecionar um chat
+  useEffect(() => {
+    if (activeChat) {
+      loadMessagesForChat(activeChat)
+    }
+  }, [activeChat, loadMessagesForChat])
+
+  useEffect(() => {
+    if (activeChat) {
+      loadMessagesForChat(activeChat)
+    }
+  }, [activeChat, loadMessagesForChat])
+
+  // // Filtra as mensagens para o chat ativo
+  // const activeMessages = useMemo(() => {
+  //   if (!activeChat) return []
+
+  //   return messages.filter((message) => {
+  //     // Verifica se a mensagem pertence à conversação atual
+  //     return message.conversationId === activeChat
+  //   })
+  // }, [messages, activeChat])
 
   // Encontra o chat ativo e seu número de telefone
   const activePhoneNumber = useMemo(() => {
     const activeUser = chats.find((chat) => chat.id === activeChat)
     return activeUser?.phoneNumber
   }, [activeChat, chats])
+
+  const activeChatDetails = useMemo(
+    () => chats.find((chat) => chat.id === activeChat),
+    [activeChat, chats]
+  )
 
   // Sincroniza o chat ativo entre as duas stores
   useEffect(() => {
@@ -93,7 +148,11 @@ export default function ChatLayout() {
 
   const handleChatSelect = (chatId: string) => {
     setActiveChat(chatId)
+    setCurrentChatId(chatId)
     setIsMobileListView(false)
+
+    // Carrega as mensagens do chat selecionado
+    loadMessagesForChat(chatId)
 
     // Reseta o contador de mensagens não lidas
     const chat = chats.find((chat) => chat.id === chatId)
@@ -119,18 +178,18 @@ export default function ChatLayout() {
     }
   }
 
+  // Handle message sending
   const handleSendMessage = () => {
-    if (activePhoneNumber) {
-      sendManualMessage(newMessage, activePhoneNumber)
-      setNewMessage("")
-    } else {
+    if (!activeChatDetails?.phoneNumber) {
       toast({
-        title: "Erro",
-        description:
-          "Não foi possível enviar a mensagem: número de telefone não encontrado",
+        title: "Error",
+        description: "Could not send message: phone number not found",
         variant: "destructive",
       })
+      return
     }
+
+    sendManualMessage(newMessage, activeChatDetails.phoneNumber)
   }
 
   const renderers = {
@@ -165,9 +224,32 @@ export default function ChatLayout() {
     },
   }
 
+  // Função para verificar se o usuário está próximo do fim
+  const isNearBottom = () => {
+    const container = scrollContainerRef.current
+    if (!container) return true
+
+    const threshold = 100 // pixels do fundo
+    return (
+      container.scrollHeight - container.scrollTop - container.clientHeight <
+      threshold
+    )
+  }
+
+  // Handler para scroll manual
+  const handleScroll = () => {
+    setShouldAutoScroll(isNearBottom())
+  }
+
+  // Efeito para scroll automático
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+    if (shouldAutoScroll && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      })
+    }
+  }, [combinedMessages, shouldAutoScroll])
 
   function formatTimestampToTime(timestamp: string): string {
     return new Date(timestamp).toLocaleTimeString("pt-BR", {
@@ -297,53 +379,70 @@ export default function ChatLayout() {
               </div>
             </div>
 
-            <div className="w-[90vw] md:w-full flex-1 overflow-y-auto p-4">
-              {activeMessages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex ${
-                    message.sender === "ai" ? "justify-end" : "justify-start"
-                  } mb-4`}
-                >
-                  <div
-                    className={`max-w-[70%] flex items-end gap-2 ${
-                      message.sender === "ai" ? "flex-row-reverse" : "flex-row"
-                    }`}
-                  >
-                    <Avatar className="w-8 h-8">
-                      <AvatarFallback>
-                        <User2Icon size="18" />
-                      </AvatarFallback>
-                    </Avatar>
+            <div
+              ref={scrollContainerRef}
+              onScroll={handleScroll}
+              className="w-[90vw] md:w-full flex-1 overflow-y-auto p-4"
+            >
+              {combinedMessages.length === 0 ? (
+                <div className="flex justify-center items-center h-full text-gray-500">
+                  <p>Nenhuma mensagem para exibir</p>
+                </div>
+              ) : (
+                combinedMessages.map((message, index) => {
+                  console.log("Rendering message:", message)
+                  const isAI = message.sender === "ai"
+
+                  return (
                     <div
-                      className={`py-2 px-4 rounded-xl ${
-                        message.sender === "ai"
-                          ? "bg-blue-500 text-white"
-                          : "bg-white dark:bg-neutral-800"
-                      }`}
+                      key={message.id || index}
+                      className={`flex ${
+                        isAI ? "justify-end" : "justify-start"
+                      } mb-4`}
                     >
-                      {message.sender === "ai" ? (
-                        <ReactMarkdown components={renderers}>
-                          {message.text}
-                        </ReactMarkdown>
-                      ) : (
-                        <p>{message.text}</p>
-                      )}
                       <div
-                        className={`${
-                          message.sender === "ai"
-                            ? "text-white"
-                            : "text-neutral-900"
-                        } text-[10px] text-gray-500 text-right mt-1`}
+                        className={`max-w-[70%] flex items-end gap-2 ${
+                          isAI ? "flex-row-reverse" : "flex-row"
+                        }`}
                       >
-                        <span className="dark:text-white">
-                          {formatTimestampToTime(message.timestamp)}
-                        </span>
+                        <Avatar className="w-8 h-8">
+                          <AvatarFallback>
+                            {isAI ? (
+                              <BotIcon size="18" />
+                            ) : (
+                              <User2Icon size="18" />
+                            )}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div
+                          className={`py-2 px-4 rounded-xl ${
+                            isAI
+                              ? "bg-blue-500 text-white"
+                              : "bg-white dark:bg-neutral-800"
+                          }`}
+                        >
+                          {isAI ? (
+                            <ReactMarkdown components={renderers}>
+                              {message.text}
+                            </ReactMarkdown>
+                          ) : (
+                            <p>{message.text}</p>
+                          )}
+                          <div
+                            className={`${
+                              isAI ? "text-white" : "text-neutral-900"
+                            } text-[10px] text-gray-500 text-right mt-1`}
+                          >
+                            <span className="dark:text-white">
+                              {formatTimestampToTime(message.timestamp)}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              ))}
+                  )
+                })
+              )}
               <div ref={messagesEndRef} />
             </div>
 
