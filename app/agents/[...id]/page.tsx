@@ -15,7 +15,9 @@ import { ModelAgents } from "../(components)/model"
 import { ModelsPrompt } from "../(components)/prompt"
 import ChatLayout from "../(components)/chat"
 import SettingPublic from "../(components)/setting-public"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useChatListStore } from "@/store/useChatListStore"
+import { useSession } from "next-auth/react"
 
 const tabTitles = {
   panel: {
@@ -45,6 +47,25 @@ type TabType = "panel" | "chat" | "model" | "prompt" | "setting-public"
 export default function AgentDetails({ params }: { params: { id: string } }) {
   const id = params.id[0]
   const [activeTab, setActiveTab] = useState<TabType>("panel")
+  const { data: session } = useSession()
+  const { fetchChats, error } = useChatListStore()
+
+  useEffect(() => {
+    if (session?.user) {
+      // Substitua estes valores pelos seus reais vindos da sessão ou configuração
+      const teamId =
+        "gsk_2IszyB5xTBVJjWpJEiGSWGdyb3FYLsHPYRYHqSKjQaoKuJ1Jz9I41b9oub1g"
+      const instanceId = "Rubnik"
+      const agentId =
+        "gsk_2IszyB5xTBVJjWpJEiGSWGdyb3FYLsHPYRYHqSKjQaoKuJ1Jz9I41b9oub1g"
+
+      fetchChats(teamId, instanceId, agentId)
+    }
+  }, [session, fetchChats])
+
+  if (error) {
+    return <div className="text-red-500">{error}</div>
+  }
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as TabType)
