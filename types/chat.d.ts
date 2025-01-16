@@ -4,5 +4,22 @@ export interface Chat {
     lastMessage: string;
     timestamp: string;
     unreadCount: number;
-    phoneNumber: string;
+    phoneNumber?: string;
+    ticketNumber?: string;
+    status?: string;
   }
+
+  export interface Message {
+    id: string;
+    text: string;
+    sender: string;
+    timestamp: string;
+    messageTo: string | null;
+    metadata?: {
+      model?: string;
+      agentTitle?: string;
+      instanceName?: string;
+      isAIResponse?: boolean;
+    };
+  }
+  
