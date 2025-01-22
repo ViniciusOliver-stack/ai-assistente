@@ -18,6 +18,13 @@ export async function getTeams() {
                     userId: user.user.id
                 }
             }
+        },
+        include: {
+            agents: {
+                include: {
+                    WhatsAppInstance: true
+                }
+            }
         }
     })
 }

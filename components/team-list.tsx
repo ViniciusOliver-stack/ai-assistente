@@ -15,7 +15,6 @@ import {
 
 export default function TeamList() {
   const [teams, setTeams] = useState<Team | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
   const [membersCount, setMembersCount] = useState(0)
   const [memberLimit, setMemberLimit] = useState(0)
 
@@ -37,16 +36,10 @@ export default function TeamList() {
       } catch (error) {
         console.error(error)
         alert("Erro ao obter equipes")
-      } finally {
-        setIsLoading(false)
       }
     }
     fetchUserTeams()
   }, [selectedTemId])
-
-  if (isLoading) {
-    return <div>Carregando...</div>
-  }
 
   if (!teams) return
 

@@ -1,3 +1,4 @@
+// components/ui/team-switcher.tsx
 "use client"
 import * as React from "react"
 import { ChevronsUpDown, GalleryVerticalEnd } from "lucide-react"
@@ -16,24 +17,51 @@ import {
 } from "@/components/ui/sidebar"
 import { getTeams } from "@/app/_actions/get-teams"
 import useTeamStore from "@/store/team-store"
-import { Team } from "@prisma/client"
+import { Team, Agent, WhatsAppInstance } from "@prisma/client"
+
+interface TeamWithRelations extends Team {
+  agents: (Agent & {
+    WhatsAppInstance: WhatsAppInstance[]
+  })[]
+}
 
 export function TeamSwitcher() {
   const { isMobile } = useSidebar()
-  const [teams, setTeams] = React.useState<Team[]>([])
-  const [activeTeam, setActiveTeam] = React.useState<Team | null>(null)
-  const setSelectedTeamId = useTeamStore((state) => state.setSelectedTeamId)
+  const [teams, setTeams] = React.useState<TeamWithRelations[]>([])
+  const [activeTeam, setActiveTeam] = React.useState<TeamWithRelations | null>(
+    null
+  )
+  const {
+    setSelectedTeamId,
+    setSelectedAgentId,
+    setSelectedInstanceId,
+    setSelectedAgentName,
+    selectedAgentId,
+    selectedAgentName,
+  } = useTeamStore()
 
   React.useEffect(() => {
     const fetchTeams = async () => {
       try {
         const fetchedTeams = await getTeams()
         setTeams(fetchedTeams)
-        // Seleciona a primeira equipe automaticamente
+
         if (fetchedTeams.length >= 1) {
           const firstTeam = fetchedTeams[0]
           setActiveTeam(firstTeam)
           setSelectedTeamId(firstTeam.id)
+          setSelectedAgentName(firstTeam.name)
+
+          // Somente define o primeiro agente se nenhum agente estiver selecionado
+          if (!selectedAgentId && firstTeam.agents.length > 0) {
+            const firstAgent = firstTeam.agents[0]
+            setSelectedAgentId(firstAgent.id)
+            setSelectedAgentName(firstTeam.name)
+
+            if (firstAgent.WhatsAppInstance.length > 0) {
+              setSelectedInstanceId(firstAgent.WhatsAppInstance[0].instanceName)
+            }
+          }
         }
       } catch (error) {
         console.error("Erro ao obter equipes:", error)
@@ -41,11 +69,32 @@ export function TeamSwitcher() {
     }
 
     fetchTeams()
-  }, [setSelectedTeamId])
+  }, [
+    setSelectedTeamId,
+    setSelectedAgentId,
+    setSelectedInstanceId,
+    setSelectedAgentName,
+    selectedAgentId,
+  ])
 
-  const handleTeamChange = (team: Team) => {
+  const handleTeamChange = (team: TeamWithRelations) => {
     setActiveTeam(team)
     setSelectedTeamId(team.id)
+
+    // Encontra o agente correspondente no novo time
+    const currentAgent = team.agents.find(
+      (agent) => agent.id === selectedAgentId
+    )
+
+    // Se não encontrar o agente atual no novo time, seleciona o primeiro agente
+    if (!currentAgent && team.agents.length > 0) {
+      const firstAgent = team.agents[0]
+      setSelectedAgentId(firstAgent.id)
+
+      if (firstAgent.WhatsAppInstance.length > 0) {
+        setSelectedInstanceId(firstAgent.WhatsAppInstance[0].instanceName)
+      }
+    }
   }
 
   if (!activeTeam) return null
@@ -66,6 +115,11 @@ export function TeamSwitcher() {
                 <span className="truncate font-semibold">
                   {activeTeam.name}
                 </span>
+                {activeTeam.agents[0] && (
+                  <span className="truncate text-xs text-muted-foreground">
+                    {activeTeam.agents[0].title || "Agente padrão"}
+                  </span>
+                )}
               </div>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
@@ -88,7 +142,14 @@ export function TeamSwitcher() {
                 <div className="flex size-6 items-center justify-center rounded-sm border">
                   <GalleryVerticalEnd className="size-4 shrink-0" />
                 </div>
-                {team.name}
+                <div className="flex flex-col">
+                  <span>{team.name}</span>
+                  {team.agents[0] && (
+                    <span className="text-xs text-muted-foreground">
+                      {team.agents.length} agentes
+                    </span>
+                  )}
+                </div>
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
