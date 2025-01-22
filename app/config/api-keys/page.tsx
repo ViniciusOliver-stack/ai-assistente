@@ -211,7 +211,7 @@ export default function ApiKeysPage() {
           ) : (
             <>
               {renderApiKeySection("OpenAI", "/OpenAI_light.svg")}
-              {renderApiKeySection("GroqAI", "/Groq_light.svg")}
+              {/* {renderApiKeySection("GroqAI", "/Groq_light.svg")} */}
             </>
           )}
         </div>
