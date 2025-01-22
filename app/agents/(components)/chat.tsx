@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import ReactMarkdown from "react-markdown"
-//import { usePathname } from "next/navigation"
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { dracula } from "react-syntax-highlighter/dist/cjs/styles/prism"
 import { useToast } from "@/hooks/use-toast"
@@ -30,10 +29,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Message } from "@/types/chat"
+import useTeamStore from "@/store/team-store"
 
 export default function ChatLayout() {
-  //const pathname = usePathname()
-  // const agentId = pathname.split("/")[2]
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true)
@@ -42,6 +40,8 @@ export default function ChatLayout() {
   const [isMobileListView, setIsMobileListView] = useState(true)
   const [combinedMessages, setCombinedMessages] = useState<Message[]>([])
 
+  const { selectedInstanceId } = useTeamStore()
+
   const {
     messages,
     isAIEnabled,
@@ -49,11 +49,14 @@ export default function ChatLayout() {
     newMessage,
     currentChatId,
     messageHistory,
+    hasMore,
+    loadingMore,
     setCurrentChatId,
     setIsAIEnabled,
     setNewMessage,
     sendManualMessage,
     loadMessagesForChat,
+    loadMoreMessages,
   } = useChatStore()
 
   const { chats, activeChat, setActiveChat, addOrUpdateChat } =
@@ -69,6 +72,7 @@ export default function ChatLayout() {
     const activeChatDetails = chats.find((chat) => chat.id === activeChat)
     const phoneNumber = activeChatDetails?.phoneNumber
     if (!phoneNumber) return
+    console.log("MENSAGENS: ", messages)
 
     // Normaliza o número de telefone para comparação
     const normalizedPhone = phoneNumber.replace(/^55/, "")
@@ -76,19 +80,8 @@ export default function ChatLayout() {
     // Pega o histórico de mensagens do chat ativo
     const chatHistory = messageHistory[activeChat] || []
 
-    // Filtra as mensagens em tempo real para este chat específico
-    const realtimeMessages = messages.filter((message) => {
-      if (message.sender === "ai") {
-        // Para mensagens da IA, verifica se o destinatário é o número do chat atual
-        return message.messageTo?.replace(/^55/, "") === normalizedPhone
-      } else {
-        // Para mensagens do usuário, verifica se o remetente é o número do chat atual
-        return message.sender?.replace(/^55/, "") === normalizedPhone
-      }
-    })
-
-    // Combina histórico com mensagens em tempo real
-    const allMessages = [...chatHistory, ...realtimeMessages]
+    // Combine all messages first
+    const allMessages = [...chatHistory, ...messages]
 
     // Remove duplicatas baseado no ID da mensagem
     const uniqueMessages = allMessages.filter(
@@ -96,11 +89,22 @@ export default function ChatLayout() {
         index === self.findIndex((m) => m.id === message.id)
     )
 
+    const instanceMessages = uniqueMessages.filter((message) => {
+      if (message.sender === "ai") {
+        return message.metadata?.instanceName === selectedInstanceId
+      } else {
+        return message.metadata?.instance === selectedInstanceId
+      }
+    })
+
     // Ordena por timestamp
-    const sortedMessages = uniqueMessages.sort(
+    const sortedMessages = instanceMessages.sort(
       (a, b) =>
         new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     )
+    console.log("Messages for instance", selectedInstanceId, sortedMessages)
+
+    console.log("Mensagens combinadas:", sortedMessages)
 
     setCombinedMessages(sortedMessages)
   }, [activeChat, messages, messageHistory, chats])
@@ -238,6 +242,15 @@ export default function ChatLayout() {
 
   // Handler para scroll manual
   const handleScroll = () => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    // Check if we're near the top instead of bottom since messages are newest first
+    if (container.scrollTop < 10 && !isLoading && hasMore && activeChat) {
+      loadMoreMessages(activeChat)
+    }
+
+    // Keep the auto-scroll behavior for new messages
     setShouldAutoScroll(isNearBottom())
   }
 
@@ -384,13 +397,20 @@ export default function ChatLayout() {
               onScroll={handleScroll}
               className="w-[90vw] md:w-full flex-1 overflow-y-auto p-4"
             >
+              {loadingMore && (
+                <div className="text-center py-2">
+                  <span className="text-sm text-gray-500">
+                    Carregando mensagens...
+                  </span>
+                </div>
+              )}
               {combinedMessages.length === 0 ? (
                 <div className="flex justify-center items-center h-full text-gray-500">
                   <p>Nenhuma mensagem para exibir</p>
                 </div>
               ) : (
                 combinedMessages.map((message, index) => {
-                  console.log("Rendering message:", message)
+                  // console.log("Rendering message:", message)
                   const isAI = message.sender === "ai"
 
                   return (
