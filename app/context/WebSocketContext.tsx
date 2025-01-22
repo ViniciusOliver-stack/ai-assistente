@@ -1,132 +1,158 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
+import useTeamStore from "@/store/team-store"
 import { useChatListStore } from "@/store/useChatListStore"
 import { useChatStore } from "@/store/useChatStore"
 import { useCallback, useEffect, useRef } from "react"
 import { io, Socket } from "socket.io-client"
 
-export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
+interface WebSocketProviderProps {
+  children: React.ReactNode
+}
+
+interface MessageData {
+  agentTitle?: string
+  hasAudio?: boolean
+  messageTo?: string
+  instanceName?: string
+  status?: string
+  isTranscribed: boolean
+  sender: string
+  text: string
+  timestamp: string
+  conversationId: string
+  id: string
+  metadata: {
+    instance?: string
+    ticketNumber?: string
+    instanceName?: string
+    isAiResponse?: boolean
+    model?: string
+  }
+}
+
+export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   children,
 }) => {
   const socketRef = useRef<Socket | null>(null)
-  const { addMessage, formatMessage } = useChatStore()
+
   const { updateLastMessage, addOrUpdateChat } = useChatListStore()
+  const { addMessage } = useChatStore()
+  const { selectedTeamId, selectedAgentId, selectedInstanceId } = useTeamStore()
 
-  const handleNewMessage = useCallback(
-    (messageData: any) => {
-      // Remove o prefixo "55" do número do telefone se existir
-      const normalizedPhoneNumber = messageData.sender.replace(/^55/, "")
+  // Keep track of processed message IDs
+  const processedMessageIds = useRef(new Set<string>())
 
-      console.log("Mensagem DATA:", messageData)
+  const isMessageForCurrentInstance = useCallback(
+    (messageData: MessageData) => {
+      const messageInstance =
+        messageData.metadata.instance || messageData.metadata.instanceName
+      const isValidInstance = messageInstance === selectedInstanceId
 
-      const formattedMessage = formatMessage({
-        id: messageData.id,
-        text: messageData.text,
-        sender: messageData.sender,
-        timestamp: messageData.timestamp,
-        messageTo: messageData.recipientId,
-        metadata: messageData.metadata,
-        conversationId: messageData.conversationId,
-      })
+      console.log("isMessageForCurrentInstance", isValidInstance)
 
-      addMessage(formattedMessage)
+      return isValidInstance
+    },
+    [selectedInstanceId]
+  )
 
-      // Create or update chat when receiving a new message
-      const chatData = {
-        id: messageData.conversationId || normalizedPhoneNumber,
-        name: normalizedPhoneNumber,
-        phoneNumber: normalizedPhoneNumber,
-        lastMessage: messageData.text,
-        timestamp: messageData.timestamp,
-        unreadCount: 1,
-        status: messageData.status || "OPEN",
-        ticketNumber: messageData.ticketNumber,
+  const processMessage = useCallback(
+    (messageData: MessageData, isAI: boolean) => {
+      // Skip if message was already processed
+      if (processedMessageIds.current.has(messageData.id)) {
+        return
       }
 
-      // Add or update the chat
+      // Skip if message is not for current instance
+      if (!isMessageForCurrentInstance(messageData)) {
+        return
+      }
+
+      // Add message ID to processed set
+      processedMessageIds.current.add(messageData.id)
+
+      console.log("Processing message:", messageData)
+
+      // Ensure the message has a conversationId
+      const messageWithConversationId = {
+        ...messageData,
+        conversationId: messageData.conversationId || messageData.sender,
+      }
+
+      // Add message to chat store
+      addMessage(messageWithConversationId)
+
+      const chatData = {
+        id: messageWithConversationId.conversationId,
+        name: isAI ? messageData.messageTo : messageData.sender,
+        phoneNumber: isAI ? messageData.messageTo : messageData.sender,
+        lastMessage: messageData.text,
+        timestamp: messageData.timestamp,
+        unreadCount: 0,
+        status: messageData.status || "OPEN",
+        ticketNumber: messageData.metadata.ticketNumber,
+        instance: selectedInstanceId,
+        selectedTeamId,
+        selectedAgentId,
+      }
+
       addOrUpdateChat(chatData)
 
-      // Atualiza apenas se já existir um chat ou se for uma nova mensagem válida
       if (messageData.text) {
         updateLastMessage(
-          normalizedPhoneNumber,
+          isAI ? (messageData.messageTo as string) : messageData.sender,
           messageData.text,
           messageData.timestamp,
-          false
+          isAI
         )
       }
     },
-    [formatMessage, addMessage, updateLastMessage, addOrUpdateChat]
-  )
-
-  const handleAIMessage = useCallback(
-    (messageData: any) => {
-      if (!messageData.messageTo) return
-
-      const normalizedPhoneNumber = messageData.messageTo.replace(/^55/, "")
-
-      const formattedMessage = formatMessage({
-        id: messageData.id,
-        text: messageData.text,
-        sender: "ai",
-        timestamp: messageData.timestamp,
-        messageTo: messageData.messageTo,
-        metadata: messageData.metadata,
-        conversationId: messageData.conversationId,
-      })
-
-      addMessage(formattedMessage)
-
-      // Update the chat with AI's response
-      const chatData = {
-        id: messageData.conversationId || normalizedPhoneNumber,
-        name: normalizedPhoneNumber,
-        phoneNumber: normalizedPhoneNumber,
-        lastMessage: messageData.text,
-        timestamp: messageData.timestamp,
-        unreadCount: 0, // Don't increment unread for AI messages
-        status: messageData.status || "OPEN",
-        ticketNumber: messageData.ticketNumber,
-      }
-
-      // Add or update the chat
-      addOrUpdateChat(chatData)
-
-      updateLastMessage(
-        normalizedPhoneNumber,
-        messageData.text,
-        messageData.timestamp,
-        true
-      )
-    },
-    [formatMessage, addMessage, updateLastMessage, addOrUpdateChat]
+    [
+      isMessageForCurrentInstance,
+      addMessage,
+      addOrUpdateChat,
+      updateLastMessage,
+      selectedInstanceId,
+      selectedTeamId,
+      selectedAgentId,
+    ]
   )
 
   useEffect(() => {
     socketRef.current = io("http://localhost:3001", {
       transports: ["websocket"],
+      query: {
+        selectedInstanceId,
+        selectedTeamId,
+        selectedAgentId,
+      },
     })
-
-    // socketRef.current = io(
-    //   "https://assistent-ai-nodejs.3g77fw.easypanel.host",
-    //   {
-    //     transports: ["websocket"],
-    //     path: "/socket.io",
-    //   }
-    // )
 
     socketRef.current.on("connect", () => {
-      console.log("Conectado ao WebSocket")
+      console.log("WebSocket Connected")
+
+      // Join instance-specific room
+      socketRef.current?.emit("join_instance", {
+        selectedInstanceId,
+        selectedTeamId,
+        selectedAgentId,
+      })
     })
 
-    socketRef.current.on("new_message", handleNewMessage)
-    socketRef.current.on("new_message_ai", handleAIMessage)
+    socketRef.current.on("new_message", (message) => {
+      processMessage(message, false)
+    })
+
+    socketRef.current.on("new_message_ai", (message) => {
+      processMessage(message, true)
+    })
 
     return () => {
       socketRef.current?.disconnect()
+      // Clear processed messages on unmount
+      processedMessageIds.current.clear()
     }
-  }, [handleAIMessage, handleNewMessage])
+  }, [processMessage])
 
   return <>{children}</>
 }

@@ -33,10 +33,10 @@ export const useChatListStore = create<ChatListStore>((set) => ({
       const chats = await response.json();
 
       console.log("Chats", chats)
-      // Normaliza os números de telefone removendo qualquer prefixo "55"
+
       const normalizedChats = chats.map((chat: Chat) => ({
         ...chat,
-        phoneNumber: chat.name.replace(/^55/, ''),
+        phoneNumber: chat.name,
         id: chat.id // Mantém o ID original do banco de dados
       }));
       
@@ -53,24 +53,22 @@ export const useChatListStore = create<ChatListStore>((set) => ({
 
   addOrUpdateChat: (chatData) => {
     set((state) => {
-      console.log("chatData", chatData)
-      // Normaliza o número de telefone removendo o prefixo "55" se existir
-      const normalizedPhoneNumber = chatData.phoneNumber?.replace(/^55/, '');
-      
-      if (!normalizedPhoneNumber) return state;
-
+      // Find existing chat by ID first, then by phone number
       const existingChatIndex = state.chats.findIndex(
-        (chat) => chat.name.replace(/^55/, '') === normalizedPhoneNumber
+        (chat) => 
+          chat.id === chatData.id || 
+          (chatData.phoneNumber && chat.phoneNumber === chatData.phoneNumber)
       );
 
       if (existingChatIndex > -1) {
         const updatedChats = [...state.chats];
         updatedChats[existingChatIndex] = {
-          ...updatedChats[existingChatIndex], // Mantém os dados existentes
-          lastMessage: chatData.lastMessage || updatedChats[existingChatIndex].lastMessage,
-          timestamp: chatData.timestamp || updatedChats[existingChatIndex].timestamp,
+          ...updatedChats[existingChatIndex],
+          ...chatData,
+          // Preserve existing ID to prevent duplicates
+          id: updatedChats[existingChatIndex].id,
           unreadCount: state.activeChat === updatedChats[existingChatIndex].id ? 
-            0 : (updatedChats[existingChatIndex].unreadCount || 0) + 1
+            0 : (updatedChats[existingChatIndex].unreadCount || 0)
         };
         
         return { 
@@ -80,14 +78,14 @@ export const useChatListStore = create<ChatListStore>((set) => ({
         };
       }
 
-      // Se chegou aqui, é um chat realmente novo
+      // If no existing chat found, create new one
       const newChat: Chat = {
-        id: chatData.id || normalizedPhoneNumber,
-        name: chatData.name || normalizedPhoneNumber,
-        phoneNumber: normalizedPhoneNumber,
+        id: chatData.id || Date.now().toString(),
+        name: chatData.name || chatData.phoneNumber as string,
+        phoneNumber: chatData.phoneNumber,
         lastMessage: chatData.lastMessage || '',
         timestamp: chatData.timestamp || new Date().toISOString(),
-        unreadCount: chatData.unreadCount || 1,
+        unreadCount: chatData.unreadCount || 0,
         status: chatData.status || 'OPEN',
         ticketNumber: chatData.ticketNumber
       };
@@ -104,11 +102,9 @@ export const useChatListStore = create<ChatListStore>((set) => ({
 
   updateLastMessage: (phoneNumber: string, message: string, timestamp: string, isAI = false) => {
     set((state) => {
-      // Normaliza o número de telefone para a comparação
-      const normalizedPhoneNumber = phoneNumber.replace(/^55/, '');
       
       const chatIndex = state.chats.findIndex(
-        (chat) => chat.name.replace(/^55/, '') === normalizedPhoneNumber
+        (chat) => chat.name === phoneNumber
       );
 
       if (chatIndex > -1) {
@@ -120,6 +116,7 @@ export const useChatListStore = create<ChatListStore>((set) => ({
           unreadCount: state.activeChat === updatedChats[chatIndex].id ? 
             0 : updatedChats[chatIndex].unreadCount + (isAI ? 0 : 1)
         };
+        console.log("updatedChats", updatedChats)
 
         return {
           chats: updatedChats.sort((a, b) => 

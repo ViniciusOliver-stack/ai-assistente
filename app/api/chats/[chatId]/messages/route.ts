@@ -8,6 +8,10 @@ export async function GET(
 ) {
   try {
     const chatId = params.chatId
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get("page") || "1")
+    const limit = parseInt(searchParams.get("limit") || "20")
+    const skip = (page - 1) * limit
 
     if (!chatId) {
       return NextResponse.json(
@@ -16,14 +20,25 @@ export async function GET(
       )
     }
 
+    // Get total count for pagination
+    const totalMessages = await db.message.count({
+      where: {
+        conversationId: chatId,
+      },
+    })
+
     const messages = await db.message.findMany({
       where: {
         conversationId: chatId,
       },
       orderBy: {
-        timestamp: "asc",
+        timestamp: "desc", // Changed to desc to get newest messages first
       },
+      skip,
+      take: limit,
     })
+
+    console.log("CHAT ID: ", chatId)
 
     console.log("Messages", messages)
 
@@ -36,7 +51,11 @@ export async function GET(
       metadata: message.metadata
     }))
 
-    return NextResponse.json(formattedMessages)
+    return NextResponse.json({
+      messages: formattedMessages,
+      hasMore: skip + limit < totalMessages,
+      total: totalMessages
+    })
   } catch (error) {
     console.error("Error fetching messages:", error)
     return NextResponse.json(

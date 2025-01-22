@@ -11,11 +11,14 @@ interface ChatStore {
   messageHistory: Record<string, Message[]>
   hasMore: boolean
   loadingMore: boolean
+  currentPage: number
+  messagesPerPage: number
 
   //Ações
   setCurrentChatId: (chatId: string | null) => void
   loadMessagesForChat: (chatId: string, loadMore?: boolean) => Promise<void>
-  addMessage: (message: Message) => void
+  loadMoreMessages: (chatId: string) => Promise<void>
+  addMessage: (message: any) => void
   setIsAIEnabled: (enabled: boolean) => void
   setIsLoading: (loading: boolean) => void
   setNewMessage: (message: string) => void
@@ -34,6 +37,9 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   messageHistory: {},
   hasMore: true,
   loadingMore: false,
+  currentPage: 1,
+  messagesPerPage: 10,
+
   
   formatMessage: (messageData) => {
     return {
@@ -42,7 +48,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       sender: messageData.sender,
       timestamp: messageData.timestamp || new Date().toISOString(),
       messageTo: messageData.messageTo || null, // Adiciona o destinatário da mensagem
-      metadata: messageData.metadata || null
+      metadata: messageData.metadata || null,
+      conversationId: messageData.conversationId || null,
     }
   },
   
@@ -53,47 +60,71 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }
   },
 
-  loadMessagesForChat: async (chatId) => {
+  loadMessagesForChat: async (chatId, loadMore = false) => {
     if (!chatId) return;
+    
+    const { currentPage, messagesPerPage } = get()
+    const page = loadMore ? currentPage + 1 : 1
     
     set({ isLoading: true });
     try {
-      const response = await fetch(`/api/chats/${chatId}/messages`);
-      if (!response.ok) throw new Error('Falha ao carregar mensagens');
+      const response = await fetch(
+        `/api/chats/${chatId}/messages?page=${page}&limit=${messagesPerPage}`
+      );
+      if (!response.ok) throw new Error('Failed to load messages');
       
-      const messagesData = await response.json();
-      
-      // Formata as mensagens recebidas garantindo que o conversationId está presente
-      const formattedMessages = messagesData.map((msg: any) => ({
+      const data = await response.json();
+      const formattedMessages = data.messages.map((msg: any) => ({
         id: msg.id,
         text: msg.text,
         sender: msg.sender,
         timestamp: msg.timestamp,
         messageTo: msg.recipientId,
         metadata: msg.metadata,
-        conversationId: msg.conversationId || chatId // Usa o chatId como fallback
+        conversationId: msg.conversationId || chatId
       }));
+
+      console.log('Formatted Messages:', formattedMessages);
       
       set((state) => ({
-        messages: formattedMessages,
+        messages: loadMore ? [...formattedMessages, ...state.messages] : formattedMessages,
+        hasMore: data.hasMore,
+        currentPage: page,
         messageHistory: {
           ...state.messageHistory,
-          [chatId]: formattedMessages
+          [chatId]: loadMore 
+            ? [...formattedMessages, ...(state.messageHistory[chatId] || [])]
+            : formattedMessages
         }
       }));
     } catch (error) {
-      console.error('Erro ao carregar mensagens:', error);
+      console.error('Error loading messages:', error);
     } finally {
       set({ isLoading: false });
     }
   },
 
+  loadMoreMessages: async (chatId) => {
+    if (get().loadingMore || !get().hasMore) return;
+    
+    set({ loadingMore: true });
+    await get().loadMessagesForChat(chatId, true);
+    set({ loadingMore: false });
+  },
+
   addMessage: (message) => {
     set((state) => {
-      const newMessages = [...state.messages, message];
+      // Only add message if it belongs to the current conversation
+      if (state.currentChatId && message.conversationId !== state.currentChatId) {
+        return state
+      }
+
+      const newMessages = [...state.messages, message]
       
-      // Atualiza também o histórico de mensagens do chat específico
-      const chatId = message.sender === 'ai' ? message.messageTo : message.sender;
+      // Update message history for the specific chat
+      const chatId = message.conversationId || 
+        (message.sender === 'ai' ? message.messageTo : message.sender)
+      
       if (chatId) {
         const chatMessages = state.messageHistory[chatId] || []
         return {
@@ -121,7 +152,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           clientMessageText, 
-          agentId
+          agentId,
+          conversationId: get().currentChatId 
         }),
       })
 
@@ -132,7 +164,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         sender: "ai",
         timestamp: data.timestamp,
         messageTo: data.messageTo, // Adiciona o destinatário
-        metadata: data.metadata
+        metadata: data.metadata,
+        conversationId: get().currentChatId,
       })
       
       get().addMessage(aiMessage)
@@ -154,6 +187,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         text,
         sender: "ai",
         timestamp: new Date().toISOString(),
+        conversationId: get().currentChatId,
       })
 
       get().addMessage(message)
@@ -171,6 +205,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
             delay: 1200,
             linkPreview: true,
             text,
+            conversationId: get().currentChatId,
           }),
         }
       )
