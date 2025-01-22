@@ -40,23 +40,27 @@ interface InstanceData {
   }
 }
 
-interface WhatsAppInstance extends WhatsAppProfile {
-  instance: {
-    instanceName: string
-    displayName: string
-    instanceId: string
-    status: string
-    serverUrl: string
-    apikey: string
-    owner?: string
-    profileName?: string
-    profilePictureUrl?: string | null
-    profileStatus?: string
-    integration: {
-      integration: string
-      token: string
-      webhook_wa_business: string
-    }
+interface WhatsAppInstance {
+  id: string
+  name: string
+  connectionStatus: string
+  ownerJid: string | null
+  profileName: string | null
+  profilePicUrl: string | null
+  integration: string
+  number: string | null
+  businessId: string | null
+  token: string
+  clientName: string
+  Setting: {
+    id: string
+    rejectCall: boolean
+    msgCall: string
+    groupsIgnore: boolean
+    alwaysOnline: boolean
+    readMessages: boolean
+    readStatus: boolean
+    syncFullHistory: boolean
   }
 }
 
@@ -80,7 +84,9 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
   const { toast } = useToast()
 
   const [instanceValue, setInstanceValue] = useState("")
-  const [instance, setInstance] = useState<InstanceData | undefined>(undefined)
+  const [instance, setInstance] = useState<WhatsAppInstance | undefined>(
+    undefined
+  )
   const [qrCode, setQrCode] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [remainingTime, setRemainingTime] = useState(0)
@@ -118,13 +124,24 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
           const data = await response.json()
           setDbInstance(data)
           if (data?.instanceName) {
-            setInstanceValue(data.instanceName)
-            setInstance({
-              instance: {
-                instanceName: data.instanceName,
-                status: data.status,
+            setInstanceValue(data.instanceName.split("_")[0])
+            const instanceData = {
+              id: data.instanceId,
+              name: data.instanceName,
+              connectionStatus: data.status,
+              integration: data.integration,
+              Setting: {
+                id: "",
+                rejectCall: false,
+                msgCall: "",
+                groupsIgnore: false,
+                alwaysOnline: false,
+                readMessages: false,
+                readStatus: false,
+                syncFullHistory: false,
               },
-            })
+            }
+            setInstance(instanceData as WhatsAppInstance)
           }
         }
       } catch (error) {
@@ -136,6 +153,7 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
   }, [teamId, agentId])
 
   const saveInstanceToDatabase = async (instanceData: WhatsAppInstance) => {
+    console.log("Instance DATA RECEBIDO: ", instanceData)
     try {
       const response = await fetch("/api/whatsapp/instance", {
         method: "POST",
@@ -143,18 +161,18 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          instanceName: instanceData.instance.instanceName,
-          displayName: instanceData.instance.displayName,
-          instanceId: instanceData.instance.instanceId,
-          status: instanceData.instance.status,
-          apiKey: instanceData.instance.apikey,
-          integration: instanceData.instance.integration.integration,
-          serverUrl: instanceData.instance.serverUrl,
-          webhookUrl: instanceData.instance.integration.webhook_wa_business,
+          instanceName: instanceData.name,
+          displayName: instanceValue,
+          instanceId: instanceData.id,
+          status: instanceData.connectionStatus,
+          integration: instanceData.integration,
+          serverUrl: "https://evolution.rubnik.com",
           teamId: teamId,
           agentId: agentId,
         }),
       })
+
+      console.log("RESPONSE:", response)
 
       if (!response.ok) {
         throw new Error("Erro ao salvar instância no banco de dados")
@@ -188,65 +206,51 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
           },
         }
       )
-      const instances: InstanceData[] = await response.json()
-
-      console.log("Instancia Ref, PEGOU O VALOR??: ", instanceNameRef.current)
-
+      const instances: WhatsAppInstance[] = await response.json()
       const targetInstance = instances.find(
-        (inst) => inst.instance.instanceName === instanceNameRef.current
+        (inst) => inst.name === instanceNameRef.current
       )
 
-      console.log("Nome da instancia:", targetInstance)
-      setInstance(targetInstance)
+      console.log("INSTANCES TARGET:", targetInstance)
 
-      console.log("Instância foi criada com sucesso!")
-      setConnectionStatus("waiting")
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      await saveInstanceToDatabase(targetInstance)
+      if (targetInstance) {
+        console.log("Entrou na instância")
+        setInstance(targetInstance)
+        await saveInstanceToDatabase(targetInstance)
 
-      if (targetInstance?.instance.status === "open") {
-        setConnectionStatus("success")
-        if (pendingInstanceRef.current) {
-          pendingInstanceRef.current = null
+        if (targetInstance.connectionStatus === "open") {
+          setConnectionStatus("success")
+          toast({
+            title: "Conexão estabelecida",
+            description: "Sua instância do WhatsApp foi conectada com sucesso!",
+          })
+          stopCountdown()
+          return true
         }
-        toast({
-          title: "Conexão estabelecida",
-          description: "Sua instância do WhatsApp foi conectada com sucesso!",
-        })
-        stopCountdown()
-        return true
-      } else {
-        setConnectionStatus("failed")
-        pendingInstanceRef.current = null
-        toast({
-          title: "Conexão não estabelecida",
-          description:
-            "Não foi possível conectar sua instância. Tente novamente.",
-          variant: "destructive",
-        })
-        return false
       }
+
+      setConnectionStatus("failed")
+      toast({
+        title: "Conexão não estabelecida",
+        description:
+          "Não foi possível conectar sua instância. Tente novamente.",
+        variant: "destructive",
+      })
+      return false
     } catch (error) {
       console.error("Erro ao verificar status:", error)
       setConnectionStatus("failed")
-      pendingInstanceRef.current = null
-      toast({
-        title: "Erro de Conexão",
-        description: "Não foi possível verificar o status da instância.",
-        variant: "destructive",
-      })
       return false
     }
   }
 
   const handleDeleteInstance = async () => {
+    console.log("Deletando instância...")
+    console.log("Instance Name:", instance?.name)
     try {
-      // Delete from external API
+      // Disconnect Instance WhatsApp
       await fetch(
-        `https://evolution.rubnik.com/instance/delete/${
-          instance!.instance.instanceName
-        }`,
+        `https://evolution.rubnik.com/instance/logout/${instance?.name}`,
         {
           method: "DELETE",
           headers: {
@@ -289,7 +293,7 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
     }
 
     // Reinicia o contador para 30 segundos
-    setRemainingTime(2)
+    setRemainingTime(30)
     setConnectionStatus("waiting")
 
     // Inicia um novo intervalo
@@ -381,35 +385,43 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
             token: token,
             qrcode: true,
             integration: "WHATSAPP-BAILEYS",
-            reject_call: true,
-            groups_ignore: true,
-            always_online: false,
-            read_messages: true,
-            read_status: true,
-            websocket_enabled: true,
-            websocket_events: [
-              "APPLICATION_STARTUP",
-              "QRCODE_UPDATED",
-              "MESSAGES_SET",
-              "MESSAGES_UPSERT",
-              "MESSAGES_UPDATE",
-              "MESSAGES_DELETE",
-              "SEND_MESSAGE",
-              "CONTACTS_SET",
-              "CONTACTS_UPSERT",
-              "CONTACTS_UPDATE",
-              "PRESENCE_UPDATE",
-              "CHATS_SET",
-              "CHATS_UPSERT",
-              "CHATS_UPDATE",
-              "CHATS_DELETE",
-              "GROUPS_UPSERT",
-              "GROUP_UPDATE",
-              "GROUP_PARTICIPANTS_UPDATE",
-              "CONNECTION_UPDATE",
-              "CALL",
-              "NEW_JWT_TOKEN",
-            ],
+            rejectCall: true,
+            groupsIgnore: true,
+            alwaysOnline: false,
+            readMessages: true,
+            readStatus: true,
+            websocket: {
+              enabled: true,
+              events: [
+                "APPLICATION_STARTUP",
+                "QRCODE_UPDATED",
+                "MESSAGES_SET",
+                "MESSAGES_UPSERT",
+                "MESSAGES_UPDATE",
+                "MESSAGES_DELETE",
+                "SEND_MESSAGE",
+                "CONTACTS_SET",
+                "CONTACTS_UPSERT",
+                "CONTACTS_UPDATE",
+                "PRESENCE_UPDATE",
+                "CHATS_SET",
+                "CHATS_UPSERT",
+                "CHATS_UPDATE",
+                "CHATS_DELETE",
+                "GROUPS_UPSERT",
+                "GROUP_UPDATE",
+                "GROUP_PARTICIPANTS_UPDATE",
+                "CONNECTION_UPDATE",
+                "CALL",
+                "NEW_JWT_TOKEN",
+                "TYPEBOT_CHANGE_STATUS",
+                "TYPEBOT_START",
+                "REMOVE_INSTANCE",
+                "LABELS_ASSOCIATION",
+                "LABELS_EDIT",
+                "LOGOUT_INSTANCE",
+              ],
+            },
           }),
         }
       )
@@ -568,25 +580,25 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
 
       {instance && (
         <div className="bg-white dark:bg-transparent py-4 px-10 ring-1 ring-slate-900/5 rounded-lg shadow-lg dark:shadow-sm dark:shadow-black/90 w-full flex items-center justify-between mt-8">
-          <p>{instance.instance.instanceName.split("_")[0]}</p>
+          <p>{instance.name.split("_")[0]}</p>
           <div className="flex gap-2">
             <div className="flex items-center justify-center gap-1.5 w-full">
               <div className="relative flex h-2 w-2">
                 <span
                   className={`animate-ping absolute inline-flex h-full w-full rounded-full ${getStatusColor(
-                    instance.instance.status
+                    instance.connectionStatus
                   )} opacity-75`}
                 >
                   <span className="absolute inline-flex h-full w-full rounded-full opacity-75"></span>
                   <span
                     className={`relative inline-flex rounded-full h-2 w-2 ${getStatusColor(
-                      instance.instance.status
+                      instance.connectionStatus
                     )}`}
                   ></span>
                 </span>
               </div>
               <p className="text-xs font-medium">
-                {getStatusLabel(instance.instance.status)}
+                {getStatusLabel(instance.connectionStatus)}
               </p>
             </div>
           </div>
@@ -600,8 +612,7 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
                 <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                 <AlertDialogDescription>
                   Ao realizar a exclusão da conexão{" "}
-                  <strong>{instance.instance.instanceName}</strong> não será
-                  possível recuperar
+                  <strong>{instance.name}</strong> não será possível recuperar
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
