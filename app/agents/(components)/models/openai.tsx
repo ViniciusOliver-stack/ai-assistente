@@ -14,7 +14,8 @@ import {
 
 import { Slider } from "@/components/ui/slider"
 import { useToast } from "@/hooks/use-toast"
-import { usePathname } from "next/navigation"
+import useTeamStore from "@/store/team-store"
+// import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 
 interface ModelOpenAIProps {
@@ -29,22 +30,24 @@ export function ModelOpenAI({ selectedAI, teamId }: ModelOpenAIProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const { toast } = useToast()
-  const pathname = usePathname()
-  const agentId = pathname.split("/")[2]
+  // const pathname = usePathname()
+  // const agentId = pathname.split("/")[2]
+
+  const { selectedAgentId } = useTeamStore()
 
   const models = [
-    { id: "gpt-4", name: "GPT-4" },
-    { id: "gpt-4-turbo", name: "GPT-4 Turbo" },
+    { id: "gpt-4o", name: "GPT-4o" },
+    { id: "gpt-4o-mini", name: "GPT-4o-mini" },
+    { id: "gpt-4-turbo-2024-04-09", name: "GPT-4 Turbo" },
     { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo" },
-    { id: "gpt-3.5", name: "GPT-3.5" },
   ]
 
   useEffect(() => {
-    if (agentId) {
+    if (selectedAgentId) {
       const fetchAgent = async () => {
         try {
           setIsLoading(true)
-          const agentData = await getAgentById(agentId)
+          const agentData = await getAgentById(selectedAgentId)
           const upperCaseProvider = agentData?.provider.toUpperCase()
 
           if (upperCaseProvider === "OPENAI") {
@@ -61,7 +64,7 @@ export function ModelOpenAI({ selectedAI, teamId }: ModelOpenAIProps) {
 
       fetchAgent()
     }
-  }, [agentId])
+  }, [selectedAgentId])
 
   const handleSave = async () => {
     if (!selectedModel) {
@@ -86,7 +89,7 @@ export function ModelOpenAI({ selectedAI, teamId }: ModelOpenAIProps) {
         return
       }
 
-      const result = await updateAgent(agentId as string, {
+      const result = await updateAgent(selectedAgentId as string, {
         providerModel: selectedModel,
         temperature,
         limitToken: tokenLimit,

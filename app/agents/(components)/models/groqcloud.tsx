@@ -15,10 +15,10 @@ import { useToast } from "@/hooks/use-toast"
 import { ModelListResponse } from "groq-sdk/resources/models.mjs"
 import { useEffect, useState } from "react"
 
-import { usePathname } from "next/navigation"
 import { getAgentById, updateAgent } from "@/app/_actions/get-agent"
 import { getApiKeyByTeamAndProvider } from "@/app/_actions/get-apikey"
 import { TextLoader } from "@/components/ui/loading-text"
+import useTeamStore from "@/store/team-store"
 
 interface ModelGroqCloudProps {
   selectedAI: string
@@ -34,8 +34,10 @@ export function ModelGroqCloud({ selectedAI, teamId }: ModelGroqCloudProps) {
   )
   const [isLoading, setIsLoading] = useState(true)
   const { toast } = useToast()
-  const pathname = usePathname()
-  const agentId = pathname.split("/").pop()
+  // const pathname = usePathname()
+  // const agentId = pathname.split("/").pop()
+
+  const { selectedAgentId } = useTeamStore()
 
   useEffect(() => {
     const fetchGroqModels = async () => {
@@ -50,11 +52,11 @@ export function ModelGroqCloud({ selectedAI, teamId }: ModelGroqCloudProps) {
   }, [])
 
   useEffect(() => {
-    if (agentId) {
+    if (selectedAgentId) {
       const fetchAgent = async () => {
         try {
           setIsLoading(true)
-          const agentData = await getAgentById(agentId as string)
+          const agentData = await getAgentById(selectedAgentId as string)
           const upperCaseProvider = agentData?.provider.toUpperCase()
 
           if (!agentData?.provider || upperCaseProvider === "GROQ") {
@@ -70,7 +72,7 @@ export function ModelGroqCloud({ selectedAI, teamId }: ModelGroqCloudProps) {
       }
       fetchAgent()
     }
-  }, [agentId])
+  }, [selectedAgentId])
 
   const handleSave = async () => {
     if (!selectedModel) {
@@ -96,7 +98,7 @@ export function ModelGroqCloud({ selectedAI, teamId }: ModelGroqCloudProps) {
         return
       }
 
-      const result = await updateAgent(agentId as string, {
+      const result = await updateAgent(selectedAgentId as string, {
         providerModel: selectedModel,
         temperature,
         limitToken: tokenLimit,

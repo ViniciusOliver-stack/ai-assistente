@@ -14,18 +14,18 @@ import {
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { usePathname } from "next/navigation"
 import {
   updatePrompt,
   getPromptById,
   getTemplateByName,
 } from "@/app/_actions/prompt"
 import { useToast } from "@/hooks/use-toast"
+import useTeamStore from "@/store/team-store"
 
 export function ModelsPrompt() {
-  const pathname = usePathname()
+  const { selectedAgentId } = useTeamStore()
   const { toast } = useToast()
-  const agentId = pathname.split("/").pop()
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectModelPrompt, setSelectModelPrompt] = useState<string>("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -40,8 +40,8 @@ export function ModelsPrompt() {
   // Carregar o prompt salvo ao montar o componente
   useEffect(() => {
     const fetchPrompt = async () => {
-      if (agentId) {
-        const prompt = await getPromptById(agentId)
+      if (selectedAgentId) {
+        const prompt = await getPromptById(selectedAgentId)
         if (prompt) {
           const { prompt: savedPrompt } = prompt
           updatePromptFields(savedPrompt as string)
@@ -50,7 +50,7 @@ export function ModelsPrompt() {
     }
 
     fetchPrompt()
-  }, [agentId])
+  }, [selectedAgentId])
 
   const updatePromptFields = (promptContent: string) => {
     setPromptData({
@@ -103,7 +103,7 @@ export function ModelsPrompt() {
       const template = await getTemplateByName(model)
 
       if (template?.prompt) {
-        const updatedPrompt = await updatePrompt(agentId as string, {
+        const updatedPrompt = await updatePrompt(selectedAgentId as string, {
           prompt: template.prompt,
         })
 
@@ -139,7 +139,7 @@ export function ModelsPrompt() {
       promptData.customRules
     )
 
-    const fetchPrompt = await updatePrompt(agentId as string, {
+    const fetchPrompt = await updatePrompt(selectedAgentId as string, {
       prompt: formattedPrompt,
     })
 
@@ -155,6 +155,16 @@ export function ModelsPrompt() {
         variant: "destructive",
       })
     }
+  }
+
+  if (!selectedAgentId) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-muted-foreground">
+          Selecione um agente para configurar o prompt
+        </p>
+      </div>
+    )
   }
 
   return (

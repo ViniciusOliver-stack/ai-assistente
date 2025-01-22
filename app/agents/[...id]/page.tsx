@@ -18,6 +18,7 @@ import SettingPublic from "../(components)/setting-public"
 import { useEffect, useState } from "react"
 import { useChatListStore } from "@/store/useChatListStore"
 import { useSession } from "next-auth/react"
+import useTeamStore from "@/store/team-store"
 
 const tabTitles = {
   panel: {
@@ -50,18 +51,22 @@ export default function AgentDetails({ params }: { params: { id: string } }) {
   const { data: session } = useSession()
   const { fetchChats, error } = useChatListStore()
 
+  const { selectedTeamId, selectedAgentId, selectedInstanceId } = useTeamStore()
+
+  console.log("selectedTeamId", selectedTeamId)
+  console.log("selectedAgentId", selectedAgentId)
+  console.log("selectedInstanceId", selectedInstanceId)
+
   useEffect(() => {
     if (session?.user) {
       // Substitua estes valores pelos seus reais vindos da sessão ou configuração
-      const teamId =
-        "gsk_2IszyB5xTBVJjWpJEiGSWGdyb3FYLsHPYRYHqSKjQaoKuJ1Jz9I41b9oub1g"
-      const instanceId = "Rubnik"
-      const agentId =
-        "gsk_2IszyB5xTBVJjWpJEiGSWGdyb3FYLsHPYRYHqSKjQaoKuJ1Jz9I41b9oub1g"
+      const teamId = selectedTeamId as string
+      const instanceId = selectedInstanceId as string
+      const agentId = selectedAgentId as string
 
       fetchChats(teamId, instanceId, agentId)
     }
-  }, [session, fetchChats])
+  }, [session, fetchChats, selectedAgentId, selectedInstanceId, selectedTeamId])
 
   if (error) {
     return <div className="text-red-500">{error}</div>
@@ -131,8 +136,8 @@ export default function AgentDetails({ params }: { params: { id: string } }) {
         </TabsContent>
         <TabsContent className="w-full pt-6 md:pt-8" value="setting-public">
           <SettingPublic
-            agentId="gsk_2IszyB5xTBVJjWpJEiGSWGdyb3FYLsHPYRYHqSKjQaoKuJ1Jz9I41b9oub1g"
-            teamId="cm578za6z0008q3a8fufu6y1j"
+            agentId={selectedAgentId as string}
+            teamId={selectedTeamId as string}
           />
         </TabsContent>
       </Tabs>
