@@ -177,7 +177,7 @@ model ApiKey {
 
 model WhatsAppInstance {
   id           String   @id @default(cuid())
-  instanceName String   @unique // Nome completo com UUID
+  instanceName String
   displayName  String? // Nome de exibição sem UUID
   instanceId   String   @unique
   status       String
