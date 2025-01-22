@@ -79,36 +79,38 @@ export default function Agents() {
         </div>
       </div>
 
-      {agents.length === 0 ? (
-        <p className="mt-10 text-lg">Você ainda não criou nenhum agente.</p>
-      ) : (
-        agents.map((agent) => (
-          <div
-            key={agent.id}
-            className="grid grid-cols-[repeat(auto-fill,_minmax(17.5rem,_1fr))] md:grid-cols-[repeat(auto-fill,_minmax(24.25rem,_1fr))] gap-3 mt-10"
-          >
-            <div className="p-5 pr-7 h-60 flex flex-col gap-5 bg-surface-color-03/30 border border-surface-color-04/50 rounded-md overflow-hidden">
-              <header className="w-full h-full flex flex-col gap-3 justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-4 gap-4">
-                    <h3 className="overflow-hidden text-ellipsis whitespace-nowrap">
-                      {agent.title}
-                    </h3>
-                    <Link href={`/agents/${agent.id}`}>
-                      <BoltIcon size="22" />
-                    </Link>
+      <div className="grid grid-cols-[repeat(auto-fill,_minmax(17.5rem,_1fr))] md:grid-cols-[repeat(auto-fill,_minmax(24.25rem,_1fr))] gap-3 mt-10">
+        {agents.length === 0 ? (
+          <p className="mt-10 text-lg">Você ainda não criou nenhum agente.</p>
+        ) : (
+          agents.map((agent) => (
+            <div
+              key={agent.id}
+              className="grid grid-cols-[repeat(auto-fill,_minmax(17.5rem,_1fr))] md:grid-cols-[repeat(auto-fill,_minmax(24.25rem,_1fr))] gap-3 mt-10"
+            >
+              <div className="p-5 pr-7 h-60 flex flex-col gap-5 bg-surface-color-03/30 border border-surface-color-04/50 rounded-md overflow-hidden">
+                <header className="w-full h-full flex flex-col gap-3 justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-4 gap-4">
+                      <h3 className="overflow-hidden text-ellipsis whitespace-nowrap">
+                        {agent.title}
+                      </h3>
+                      <Link href={`/agents/${agent.id}`}>
+                        <BoltIcon size="22" />
+                      </Link>
+                    </div>
+                    <p className="line-clamp-3 break-words text-gray-400">
+                      {agent.description}
+                    </p>
                   </div>
-                  <p className="line-clamp-3 break-words text-gray-400">
-                    {agent.description}
-                  </p>
-                </div>
 
-                <p className="text-sm font-medium">{agent.providerModel}</p>
-              </header>
+                  <p className="text-sm font-medium">{agent.providerModel}</p>
+                </header>
+              </div>
             </div>
-          </div>
-        ))
-      )}
+          ))
+        )}
+      </div>
     </section>
   )
 }
