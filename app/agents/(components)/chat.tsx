@@ -30,6 +30,8 @@ import {
 } from "@/components/ui/select"
 import { Message } from "@/types/chat"
 import useTeamStore from "@/store/team-store"
+import { DeleteChat } from "@/app/_actions/delete-chat"
+import { CloseChat } from "@/app/_actions/close-chat"
 
 export default function ChatLayout() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -39,6 +41,8 @@ export default function ChatLayout() {
   const { toast } = useToast()
   const [isMobileListView, setIsMobileListView] = useState(true)
   const [combinedMessages, setCombinedMessages] = useState<Message[]>([])
+
+  const [isClosing, setIsClosing] = useState(false)
 
   const { selectedInstanceId } = useTeamStore()
 
@@ -51,16 +55,23 @@ export default function ChatLayout() {
     messageHistory,
     hasMore,
     loadingMore,
+    isAIEnabledForChat,
     setCurrentChatId,
-    setIsAIEnabled,
     setNewMessage,
     sendManualMessage,
     loadMessagesForChat,
     loadMoreMessages,
+    toggleAIForCurrentChat,
   } = useChatStore()
 
-  const { chats, activeChat, setActiveChat, addOrUpdateChat } =
-    useChatListStore()
+  const {
+    chats,
+    activeChat,
+    setActiveChat,
+    addOrUpdateChat,
+    removeChat,
+    updateChatStatus,
+  } = useChatListStore()
 
   useEffect(() => {
     if (!activeChat) {
@@ -73,9 +84,6 @@ export default function ChatLayout() {
     const phoneNumber = activeChatDetails?.phoneNumber
     if (!phoneNumber) return
     console.log("MENSAGENS: ", messages)
-
-    // Normaliza o número de telefone para comparação
-    const normalizedPhone = phoneNumber.replace(/^55/, "")
 
     // Pega o histórico de mensagens do chat ativo
     const chatHistory = messageHistory[activeChat] || []
@@ -272,6 +280,127 @@ export default function ChatLayout() {
     })
   }
 
+  const handleDeleteChat = async () => {
+    if (!activeChat) return
+
+    console.log("Chat ativo no momento", activeChat)
+
+    try {
+      const result = await DeleteChat(activeChat)
+
+      if (result.success) {
+        setActiveChat("")
+        setCurrentChatId("")
+
+        //remover chat
+        // const updatedChats = chats.filter((chat) => chat.id !== activeChat)
+        removeChat(activeChat)
+        toast({
+          title: "Chat excluído",
+          description: "O chat foi excluído com sucesso.",
+        })
+      } else {
+        toast({
+          title: "Erro",
+          description: "Não foi possível excluir o chat.",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error(error)
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao excluir o chat.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleCloseChat = async () => {
+    if (!activeChat || isClosing) return
+
+    setIsClosing(true)
+
+    console.log("Initiating chat close for:", activeChat)
+
+    const result = await CloseChat(activeChat)
+
+    console.log("Close chat success response:", result)
+
+    updateChatStatus(activeChat, "CLOSED")
+
+    //Reset do chat ativo
+    setActiveChat("")
+    setCurrentChatId("")
+
+    toast({
+      title: "Chat fechado",
+      description: "O chat foi fechado com sucesso.",
+    })
+
+    if (result.success) {
+      setIsClosing(false)
+      return
+    }
+  }
+
+  // Modificar o botão de toggle da IA
+  const renderAIToggleButton = (chatId: string) => {
+    const isEnabled = isAIEnabledForChat(chatId)
+
+    console.log("Active CHAT", activeChat)
+    console.log("Chat ID", chatId)
+
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => toggleAIForCurrentChat(chatId)}
+        className="dark:bg-transparent dark:hover:bg-blue-500 dark:text-white hover:bg-blue-500 hover:text-white transition-all duration-200 ease-in-out"
+        disabled={!currentChatId}
+      >
+        {isEnabled ? (
+          <>
+            <BotOff className="w-4 h-4 md:mr-2" />
+            <p className="hidden md:inline">Desabilitar IA</p>
+          </>
+        ) : (
+          <>
+            <BotIcon className="w-4 h-4 md:mr-2" />
+            <p className="hidden md:inline">Habilitar IA</p>
+          </>
+        )}
+      </Button>
+    )
+  }
+
+  // Modificar a área de input para mostrar apenas quando a IA estiver desabilitada para o chat atual
+  const renderInputArea = () => {
+    if (!currentChatId || isAIEnabledForChat(currentChatId)) return null
+
+    return (
+      <div className="p-4 bg-white border-t dark:bg-neutral-900">
+        <div className="flex gap-2">
+          <textarea
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Digite sua mensagem..."
+            className="flex-1 p-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows={1}
+          />
+          <Button
+            onClick={handleSendMessage}
+            disabled={isLoading || !newMessage.trim()}
+            className="self-end"
+          >
+            <SendHorizonalIcon className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   if (chats.length === 0) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-gray-500">
@@ -344,7 +473,7 @@ export default function ChatLayout() {
                 </Button>
               </div>
               <div className="space-x-2 flex justify-end items-end w-full select-none">
-                <Button
+                {/* <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setIsAIEnabled(!isAIEnabled)}
@@ -358,11 +487,12 @@ export default function ChatLayout() {
                   <p className="hidden md:inline">
                     {isAIEnabled ? "Desabilitar IA" : "Habilitar IA"}
                   </p>
-                </Button>
-
+                </Button> */}
+                {renderAIToggleButton(activeChat)}
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={handleDeleteChat}
                   className="dark:bg-transparent dark:hover:bg-blue-500 dark:text-white hover:bg-blue-500 hover:text-white transition-all duration-200 ease-in-out"
                 >
                   <Trash2Icon className="w-4 h-4 md:mr-2" />
@@ -372,10 +502,20 @@ export default function ChatLayout() {
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={handleCloseChat}
                   className="dark:bg-transparent dark:hover:bg-blue-500 dark:text-white hover:bg-blue-500 hover:text-white transition-all duration-200 ease-in-out"
                 >
-                  <MessageSquareOffIcon className="w-4 h-4 md:mr-2" />
-                  <span className="hidden md:inline">Fechar chat</span>
+                  {isClosing ? (
+                    <div className="flex items-center">
+                      <span className="animate-spin mr-2">⌛</span>
+                      <span className="hidden md:inline">Fechando...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <MessageSquareOffIcon className="w-4 h-4 md:mr-2" />
+                      <span className="hidden md:inline">Fechar chat</span>
+                    </>
+                  )}
                 </Button>
 
                 <Select>
@@ -466,7 +606,9 @@ export default function ChatLayout() {
               <div ref={messagesEndRef} />
             </div>
 
-            {!isAIEnabled && (
+            {renderInputArea()}
+
+            {/* {!isAIEnabled && (
               <div className="p-4 bg-white border-t dark:bg-neutral-900">
                 <div className="flex gap-2">
                   <textarea
@@ -486,7 +628,7 @@ export default function ChatLayout() {
                   </Button>
                 </div>
               </div>
-            )}
+            )} */}
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center text-gray-500">
