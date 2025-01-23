@@ -10,6 +10,8 @@ interface ChatListStore {
   setChats: (chats: Chat[]) => void;
   addOrUpdateChat: (chatData: Partial<Chat>) => void;
   setActiveChat: (chatId: string) => void;
+  removeChat: (chatId: string) => void;
+  updateChatStatus: (chatId: string, status: string) => void;
   updateLastMessage: (phoneNumber: string, message: string, timestamp: string, isAI?: boolean) => void;
   fetchChats: (teamId: string, instanceId: string, agentId: string) => Promise<void>;
 }
@@ -21,6 +23,25 @@ export const useChatListStore = create<ChatListStore>((set) => ({
   error: null,
 
   setChats: (chats) => set({ chats }),
+
+  removeChat: (chatId) => set((state) => ({
+    chats: state.chats.filter(chat => chat.id !== chatId),
+    activeChat: state.activeChat === chatId ? null : state.activeChat
+  })),
+
+  updateChatStatus: (chatId: string, status: string) => set((state) => {
+    const updatedChats = state.chats.map(chat => 
+      chat.id === chatId 
+        ? { ...chat, status: status }
+        : chat
+    );
+
+    return {
+      chats: updatedChats,
+      // Se o chat fechado for o ativo, limpa a seleção
+      activeChat: state.activeChat === chatId ? null : state.activeChat
+    };
+  }),
 
   fetchChats: async (teamId: string, instanceId: string, agentId: string) => {
     set({ isLoading: true, error: null });
