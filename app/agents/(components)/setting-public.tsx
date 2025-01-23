@@ -154,42 +154,33 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
 
   const saveInstanceToDatabase = async (instanceData: WhatsAppInstance) => {
     console.log("Instance DATA RECEBIDO: ", instanceData)
-    try {
-      const response = await fetch("/api/whatsapp/instance", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          instanceName: instanceData.name,
-          displayName: instanceValue,
-          instanceId: instanceData.id,
-          status: instanceData.connectionStatus,
-          integration: instanceData.integration,
-          serverUrl: "https://evolution.rubnik.com",
-          teamId: teamId,
-          agentId: agentId,
-        }),
-      })
+    const response = await fetch("/api/whatsapp/instance", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        instanceName: instanceData.name,
+        displayName: instanceValue,
+        instanceId: instanceData.id,
+        status: instanceData.connectionStatus,
+        integration: instanceData.integration,
+        serverUrl: "https://evolution.rubnik.com",
+        teamId: teamId,
+        agentId: agentId,
+      }),
+    })
 
-      console.log("RESPONSE:", response)
+    console.log("RESPONSE:", response)
 
-      if (!response.ok) {
-        throw new Error("Erro ao salvar instância no banco de dados")
-      }
-
-      toast({
-        title: "Instância salva com sucesso",
-        description: "Sua instância do WhatsApp foi salva com sucesso!",
-      })
-    } catch (error) {
-      console.error("Error saving instance:", error)
-      toast({
-        title: "Erro",
-        description: "Não foi possível salvar os dados da instância.",
-        variant: "destructive",
-      })
+    if (!response.ok) {
+      throw new Error("Erro ao salvar instância no banco de dados")
     }
+
+    toast({
+      title: "Instância salva com sucesso",
+      description: "Sua instância do WhatsApp foi salva com sucesso!",
+    })
   }
 
   const checkInstanceStatus = async () => {
