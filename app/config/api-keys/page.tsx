@@ -65,9 +65,6 @@ export default function ApiKeysPage() {
     )}${key.substring(key.length - 4)}`
   }
 
-  console.log(apiKeys)
-  console.log("Editable Keys:", editableKeys)
-
   const handleSaveApiKey = async (provider: string, apiKey: string) => {
     if (!selectedTeamId) {
       toast({
@@ -167,7 +164,7 @@ export default function ApiKeysPage() {
             <>
               <Input
                 type="text"
-                placeholder={provider}
+                placeholder="Digite sua chave API"
                 value={editableKeys[provider]}
                 onChange={(e) =>
                   setEditableKeys({
@@ -210,7 +207,7 @@ export default function ApiKeysPage() {
             <div>Carregando...</div>
           ) : (
             <>
-              {renderApiKeySection("OpenAI", "/OpenAI_light.svg")}
+              {renderApiKeySection("OPENAI", "/OpenAI_light.svg")}
               {/* {renderApiKeySection("GroqAI", "/Groq_light.svg")} */}
             </>
           )}
