@@ -14,6 +14,8 @@ interface ChatStore {
   currentPage: number
   messagesPerPage: number
 
+  aiEnabledConversations: Set<string> 
+
   //Ações
   setCurrentChatId: (chatId: string | null) => void
   loadMessagesForChat: (chatId: string, loadMore?: boolean) => Promise<void>
@@ -26,11 +28,16 @@ interface ChatStore {
   sendManualMessage: (text: string, phoneNumber: string) => Promise<void>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   formatMessage: (messageData: any) => Message
+
+  toggleAIForCurrentChat: (chatId: string) => Promise<void>
+  isAIEnabledForChat: (chatId: string) => boolean
+  setAIEnabledForChat: (chatId: string, enabled: boolean) => void
 }
 
 export const useChatStore = create<ChatStore>((set, get) => ({
   messages: [],
   isAIEnabled: true,
+  aiEnabledConversations: new Set(),
   isLoading: false,
   newMessage: "",
   currentChatId: null,
@@ -40,6 +47,52 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   currentPage: 1,
   messagesPerPage: 10,
 
+  toggleAIForCurrentChat: async (chatId: string) => {
+    if (!chatId) return;
+
+   const isCurrentlyEnabled = get().isAIEnabledForChat(chatId);
+  const newState = !isCurrentlyEnabled;
+
+    try {
+      // Atualizar no backend
+      const response = await fetch(`/api/conversations/${chatId}/ai-status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isAIEnabled: newState })
+      });
+
+      if (!response.ok) throw new Error('Failed to update AI status');
+
+      // Atualizar estado local
+      set((state) => {
+        const newAiEnabledConversations = new Set(state.aiEnabledConversations);
+        if (newState) {
+          newAiEnabledConversations.add(chatId);
+        } else {
+          newAiEnabledConversations.delete(chatId);
+        }
+        return { aiEnabledConversations: newAiEnabledConversations };
+      });
+    } catch (error) {
+      console.error('Error toggling AI status:', error);
+    }
+  },
+
+  isAIEnabledForChat: (chatId: string) => {
+    return get().aiEnabledConversations.has(chatId);
+  },
+
+  setAIEnabledForChat: (chatId: string, enabled: boolean) => {
+    set((state) => {
+      const newAiEnabledConversations = new Set(state.aiEnabledConversations);
+      if (enabled) {
+        newAiEnabledConversations.add(chatId);
+      } else {
+        newAiEnabledConversations.delete(chatId);
+      }
+      return { aiEnabledConversations: newAiEnabledConversations };
+    });
+  },
   
   formatMessage: (messageData) => {
     return {
