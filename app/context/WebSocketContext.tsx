@@ -139,6 +139,10 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       })
     })
 
+    socketRef.current.on("disconnect", () => {
+      console.log("WebSocket Disconnected")
+    })
+
     socketRef.current.on("new_message", (message) => {
       processMessage(message, false)
     })
@@ -148,11 +152,17 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     })
 
     return () => {
-      socketRef.current?.disconnect()
-      // Clear processed messages on unmount
-      processedMessageIds.current.clear()
+      console.log("Cleaning up WebSocket connection")
+      if (socketRef.current) {
+        socketRef.current.emit("leave_instance", {
+          selectedInstanceId,
+          selectedTeamId,
+          selectedAgentId,
+        })
+        socketRef.current.disconnect()
+      }
     }
-  }, [processMessage])
+  }, [processMessage, selectedInstanceId, selectedAgentId, selectedTeamId])
 
   return <>{children}</>
 }
