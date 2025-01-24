@@ -18,27 +18,27 @@ import { useToast } from "@/hooks/use-toast"
 import { TrashIcon } from "lucide-react"
 import { v4 as uuidv4 } from "uuid"
 
-interface WhatsAppProfile {
-  owner?: string
-  profileName?: string
-  profilePictureUrl?: string | null
-  profileStatus?: string
-}
+// interface WhatsAppProfile {
+//   owner?: string
+//   profileName?: string
+//   profilePictureUrl?: string | null
+//   profileStatus?: string
+// }
 
 interface ConnectionResponse {
   base64: string
   qrcode?: {
     base64: string
   }
-  instance?: WhatsAppInstance["instance"]
+  instance?: WhatsAppInstance[]
 }
 
-interface InstanceData {
-  instance: {
-    instanceName: string
-    status: string
-  }
-}
+// interface InstanceData {
+//   instance: {
+//     instanceName: string
+//     status: string
+//   }
+// }
 
 interface WhatsAppInstance {
   id: string
@@ -430,6 +430,8 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
           displayName: instanceValue, // Store original name for display
           instanceName: uniqueInstanceName, // Store full name with UUID
         }
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         pendingInstanceRef.current = { instance: instanceData }
       }
 

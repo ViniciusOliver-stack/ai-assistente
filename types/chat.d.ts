@@ -19,6 +19,7 @@ export interface Chat {
       model?: string;
       agentTitle?: string;
       instanceName?: string;
+      instance?: string;
       isAIResponse?: boolean;
     };
   }
