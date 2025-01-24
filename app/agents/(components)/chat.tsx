@@ -48,7 +48,6 @@ export default function ChatLayout() {
 
   const {
     messages,
-    isAIEnabled,
     isLoading,
     newMessage,
     currentChatId,
