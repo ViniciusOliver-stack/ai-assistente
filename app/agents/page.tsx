@@ -10,6 +10,8 @@ import React from "react"
 import { BoltIcon } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 import { Button } from "@/components/ui/button"
+import { TextLoader } from "@/components/ui/loading-text"
+import { CountAgents } from "../_actions/cout-agents"
 
 export type Agent = {
   id: string
@@ -29,15 +31,17 @@ export default function Agents() {
   const selectedTeamId = useTeamStore((state) => state.selectedTeamId)
   const [isLoading, setIsLoading] = useState(true)
   const [agents, setAgents] = useState<Agent[]>([])
+  const [agentCount, setAgentCount] = useState(0)
 
   useEffect(() => {
     const fetchUserTeams = async () => {
       try {
         if (selectedTeamId) {
           const listAgents = await getListAgents(selectedTeamId)
-
+          const countResponse = await CountAgents(selectedTeamId)
           setAgents(listAgents)
-          console.log(agents)
+          setAgentCount(countResponse!)
+          console.log(listAgents.length)
         } else {
           console.log("Selecione uma equipe")
         }
@@ -54,7 +58,15 @@ export default function Agents() {
   if (isLoading) {
     return (
       <div className="w-full h-screen flex items-center justify-center">
-        <Spinner />
+        <div className="w-full h-auto flex items-center justify-center">
+          <TextLoader
+            messages={[
+              "Carregando agentes",
+              "Preparando a sua experiência",
+              "Quase lá",
+            ]}
+          />
+        </div>
       </div>
     )
   }
@@ -72,7 +84,8 @@ export default function Agents() {
         <div>
           <Button
             asChild
-            className="hover:bg-blue-500 transition-all delay-100"
+            disabled={isLoading || agentCount >= 1}
+            className="hover:bg-blue-500 transition-all delay-100 disabled:cursor-not-allowed"
           >
             <Link href="/agents/new">Criar novo agente</Link>
           </Button>
