@@ -1,25 +1,27 @@
-"use server"
+// "use server"
 
-import { authOptions } from "@/lib/auth"
-import { createCheckoutSession } from "@/services/stripe/stripe"
-import { getServerSession } from "next-auth"
-import { redirect } from "next/navigation"
+//Verificar necessidade de uso
 
-export async function createCheckoutSessionAction(priceId: string) {
-    const session = await getServerSession(authOptions)
+// import { authOptions } from "@/lib/auth"
+// import { createCheckoutSession } from "@/services/stripe/stripe"
+// import { getServerSession } from "next-auth"
+// import { redirect } from "next/navigation"
 
-    if(!session?.user){
-        console.log("Usuário não autenticado")
-        return 
-    }
+// export async function createCheckoutSessionAction(priceId: string) {
+//     const session = await getServerSession(authOptions)
 
-    const checkoutSession = await createCheckoutSession(
-        session.user.id as string, 
-        session.user.email as string,
-        priceId // Usar o priceId correto aqui
-    )
+//     if(!session?.user){
+//         console.log("Usuário não autenticado")
+//         return 
+//     }
 
-    if(!checkoutSession.url) return 
+//     const checkoutSession = await createCheckoutSession(
+//         session.user.id as string, 
+//         session.user.email as string,
+//         priceId // Usar o priceId correto aqui
+//     )
 
-    redirect(checkoutSession.url)
-}
+//     if(!checkoutSession.url) return 
+
+//     redirect(checkoutSession.url)
+// }
