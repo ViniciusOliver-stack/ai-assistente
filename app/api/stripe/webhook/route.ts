@@ -75,6 +75,17 @@ export async function POST(req: Request) {
       }
       break;
 
+    case 'customer.subscription.updated':
+      const updatedSubscription = event.data.object as Stripe.Subscription;
+      await db.user.updateMany({
+        where: { stripeSubscriptionId: updatedSubscription.id },
+        data: {
+          stripePriceId: updatedSubscription.items.data[0].price.id,
+          stripeSubscriptionStatus: updatedSubscription.status,
+        },
+      });
+    break;
+
     case 'customer.subscription.deleted':
       const deletedSubscription = event.data.object as Stripe.Subscription;
       await db.user.updateMany({

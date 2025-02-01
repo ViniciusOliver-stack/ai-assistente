@@ -23,7 +23,7 @@ export async function POST(req: Request) {
             stripeCustomerId: true,
             stripeSubscriptionId: true
             }
-});
+        });
 
         // Tenta atualizar assinatura existente
         const existingSubscription = await handleSubscriptionChange(
@@ -58,7 +58,13 @@ export async function POST(req: Request) {
             sessionParams.customer_email = session.user.email!;
         }
 
-        const stripeSession = await stripe.checkout.sessions.create(sessionParams);
+        const stripeSession = await stripe.checkout.sessions.create({
+            ...sessionParams,
+            metadata: {
+                userId: session.user.id,
+                priceId: priceId
+            }
+        });
 
           return NextResponse.json({ url: stripeSession.url });
     } catch(error) {
