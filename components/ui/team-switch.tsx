@@ -18,6 +18,8 @@ import {
 import { getTeams } from "@/app/_actions/get-teams"
 import useTeamStore from "@/store/team-store"
 import { Team, Agent, WhatsAppInstance } from "@prisma/client"
+import { useRouter } from "next/navigation"
+import { useTrialStore } from "@/store/use-trial-store"
 
 interface TeamWithRelations extends Team {
   agents: (Agent & {

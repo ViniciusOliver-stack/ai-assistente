@@ -14,13 +14,27 @@ import Image from "next/image"
 import NavMain from "../nav-main"
 import NavUser from "../nav-user"
 import NavSuporte from "../nav-suporte"
+import { useTheme } from "next-themes"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { theme } = useTheme()
+
+  const getLogoSrc = () => {
+    switch (theme) {
+      case "light":
+        return "/logo.svg"
+      case "dark":
+        return "/logo-white.svg"
+      default:
+        return "/logo.svg"
+    }
+  }
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <Image
-          src="/logo.svg"
+          src={getLogoSrc()}
           alt="Logo"
           width={120}
           height={120}
@@ -31,7 +45,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       <SidebarContent>
         <NavMain />
-        <NavSuporte />
+        {/* <NavSuporte /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
