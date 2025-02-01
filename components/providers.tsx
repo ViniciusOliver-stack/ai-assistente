@@ -11,6 +11,18 @@ import { CheckAuthentication } from "./check-authentication"
 import { useTheme } from "next-themes"
 import { MoonIcon, SunIcon } from "lucide-react"
 import { Button } from "./ui/button"
+import { usePreventDevTools } from "@/hooks/user-prevent-dev-tools"
+
+const loadSleekPlanWidget = () => {
+  if (typeof window !== "undefined" && !window.$sleek) {
+    window.$sleek = []
+    window.SLEEK_PRODUCT_ID = 407276291
+    const script = document.createElement("script")
+    script.src = "https://client.sleekplan.com/sdk/e.js"
+    script.async = true
+    document.head.appendChild(script)
+  }
+}
 
 const ProtectedContent = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname()
@@ -19,9 +31,18 @@ const ProtectedContent = ({ children }: { children: React.ReactNode }) => {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
+  // Lista de rotas onde o widget NÃO deve aparecer
+  const excludedRoutes = ["/", "/auth", "/_not-found"]
+
+  usePreventDevTools()
+
   useEffect(() => {
     setMounted(true)
-  }, [])
+    // Carrega o widget apenas se não estiver nas rotas excluídas
+    if (!excludedRoutes.includes(pathname)) {
+      loadSleekPlanWidget()
+    }
+  }, [pathname])
 
   if (pathname === "/auth" || pathname === "/") {
     return <>{children}</>
