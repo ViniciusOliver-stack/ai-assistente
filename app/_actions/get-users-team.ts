@@ -2,7 +2,7 @@
 
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { getPlanByPrice } from "@/services/stripe/stripe"
+import { getPlanByPrice } from "@/services/stripe/stripe-bkp"
 import { getServerSession } from "next-auth"
 
 export async function GetUsersTeam(selectedTeamId: string) {
