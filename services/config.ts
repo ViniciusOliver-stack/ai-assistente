@@ -13,34 +13,6 @@ export const config = {
             members: 5        // Limite de membros por equipe
           }
         },
-        operational: {
-            priceId: "price_1Q8AKCDgEDIMckti1uwWdTOM",
-            quota: {
-              agents: 2,
-              knowledgeBase: 4,
-              teams: 2,
-              members: 4
-            }
-        },
-        management: {
-          priceId: "price_1Q8Wa7DgEDIMcktihOkWYPNh",
-          quota: {
-            agents: 6,
-            knowledgeBase: 12,
-            teams: 6,
-            members: 20
-          }
-      },
-        executive: {
-            priceId: "price_1Q8AKiDgEDIMcktiUNVjqRlj",
-            quota: {
-              agents: 30,
-              knowledgeBase: 60,
-              teams: 10,
-              members: 60
-            }
-        },
-
       }
     }
   }
