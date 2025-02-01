@@ -3,6 +3,7 @@ import Alert from "@/components/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { TextLoader } from "@/components/ui/loading-text"
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
@@ -73,8 +74,14 @@ export function PanelAgents({ id }: PanelAgentsProps) {
 
   if (isLoading)
     return (
-      <div className="w-full h-screen flex items-center justify-center">
-        <Spinner />
+      <div className="w-full h-auto flex items-center justify-center">
+        <TextLoader
+          messages={[
+            "Preparando os agentes",
+            "Preparando a sua experiência",
+            "Quase lá",
+          ]}
+        />
       </div>
     )
 

@@ -1,11 +1,53 @@
 "use client"
 
-import AddMemberForm from "@/components/add-member-form"
 import CreateTeamFrom from "@/components/create-team-form"
 import { Header } from "@/components/header"
-import TeamList from "@/components/team-list"
+import { TextLoader } from "@/components/ui/loading-text"
+import { useTrialStore } from "@/store/use-trial-store"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+// import AddMemberForm from "@/components/add-member-form"
+// import TeamList from "@/components/team-list"
 
 export default function TeamPage() {
+  const { isTrialExpired, isTrialStarted, checkTrialStatus } = useTrialStore()
+  const [hasActiveSub, setHasActiveSub] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const res = await fetch("/api/user/subscription-status")
+        const { isActive } = await res.json()
+        setHasActiveSub(isActive)
+      } catch (error) {
+        console.error("Error checking access:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    checkAccess()
+  }, [router])
+  if (loading)
+    return (
+      <div className="w-full h-auto flex items-center justify-center">
+        <TextLoader
+          messages={[
+            "Carregando a sua equipe",
+            "Preparando a sua experiência",
+            "Quase lá",
+          ]}
+        />
+      </div>
+    )
+
+  // Não mostra a navegação se o trial não foi iniciado ou expirou
+  if (!hasActiveSub && isTrialExpired) {
+    router.push("/dashboard")
+  }
+
   return (
     <section>
       <Header

@@ -170,7 +170,7 @@ export function ModelsPrompt() {
   return (
     <section className="h-full">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium bg-zinc-300 px-2 py-1 rounded-md">
+        <h2 className="text-lg font-medium bg-zinc-300 dark:bg-zinc-800 px-2 py-1 rounded-md">
           Simplificado
         </h2>
 

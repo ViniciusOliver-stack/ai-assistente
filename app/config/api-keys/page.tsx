@@ -3,9 +3,12 @@
 import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { TextLoader } from "@/components/ui/loading-text"
 import { useToast } from "@/hooks/use-toast"
 import useTeamStore from "@/store/team-store"
+import { useTrialStore } from "@/store/use-trial-store"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
 interface ApiKey {
@@ -21,15 +24,44 @@ export default function ApiKeysPage() {
   const [isSaving, setIsSaving] = useState<Record<string, boolean>>({})
   const [editableKeys, setEditableKeys] = useState<Record<string, string>>({})
   const [isEditing, setIsEditing] = useState<Record<string, boolean>>({})
-
+  const [hasActiveSub, setHasActiveSub] = useState(false)
+  const [loading, setLoading] = useState(true)
   const selectedTeamId = useTeamStore((state) => state.selectedTeamId)
   const { toast } = useToast()
+
+  const { isTrialExpired, checkTrialStatus } = useTrialStore()
+  const router = useRouter()
+
+  useEffect(() => {
+    checkTrialStatus()
+  }, [checkTrialStatus])
 
   useEffect(() => {
     if (selectedTeamId) {
       fetchApiKeys()
     }
   }, [selectedTeamId])
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const res = await fetch("/api/user/subscription-status")
+        const { isActive } = await res.json()
+        setHasActiveSub(isActive)
+      } catch (error) {
+        console.error("Error checking access:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    checkAccess()
+  }, [router])
+
+  // Não mostra a navegação se o trial não foi iniciado ou expirou
+  if (!hasActiveSub && isTrialExpired) {
+    router.push("/dashboard")
+  }
 
   const fetchApiKeys = async () => {
     try {
@@ -190,6 +222,20 @@ export default function ApiKeysPage() {
     )
   }
 
+  if (!selectedTeamId) {
+    return (
+      <section>
+        <Header
+          title="Chaves de API"
+          description="Gerencie suas chaves de API"
+        />
+        <p className="text-sm text-gray-500">
+          Selecione ou crie uma equipe primeiro
+        </p>
+      </section>
+    )
+  }
+
   return (
     <section>
       <Header title="Chaves de API" description="Gerencie suas chaves de API" />
@@ -204,7 +250,15 @@ export default function ApiKeysPage() {
 
         <div className="flex flex-col gap-5 mt-8">
           {isLoading ? (
-            <div>Carregando...</div>
+            <div className="w-full h-auto flex items-center justify-center">
+              <TextLoader
+                messages={[
+                  "Carregando informações",
+                  "Preparando a chave de API",
+                  "Quase lá",
+                ]}
+              />
+            </div>
           ) : (
             <>
               {renderApiKeySection("OPENAI", "/OpenAI_light.svg")}

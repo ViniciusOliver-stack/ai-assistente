@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 
 import { Header } from "@/components/header"
@@ -8,14 +8,54 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
+import { useTrialStore } from "@/store/use-trial-store"
+import { useRouter } from "next/navigation"
+import { TextLoader } from "@/components/ui/loading-text"
 
 export default function ProfilePage() {
   const { data: session } = useSession()
   const [username, setUsername] = useState(session?.user?.name || "")
   const [isUpdating, setIsUpdating] = useState(false)
   const userId = session?.user.id //Esse ID existe
-
+  const [hasActiveSub, setHasActiveSub] = useState(false)
+  const [loading, setLoading] = useState(true)
   const { toast } = useToast()
+
+  const { isTrialExpired, isTrialStarted } = useTrialStore()
+  const router = useRouter()
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const res = await fetch("/api/user/subscription-status")
+        const { isActive } = await res.json()
+        setHasActiveSub(isActive)
+      } catch (error) {
+        console.error("Error checking access:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    checkAccess()
+  }, [router])
+  if (loading)
+    return (
+      <div className="w-full h-auto flex items-center justify-center">
+        <TextLoader
+          messages={[
+            "Carregando o perfil",
+            "Preparando as informações",
+            "Quase lá",
+          ]}
+        />
+      </div>
+    )
+
+  // Não mostra a navegação se o trial não foi iniciado ou expirou
+  if ((!hasActiveSub && isTrialExpired) || !isTrialStarted) {
+    router.push("/dashboard")
+  }
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUsername(e.target.value)
