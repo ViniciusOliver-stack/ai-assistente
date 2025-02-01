@@ -53,10 +53,6 @@ export default function AgentDetails({ params }: { params: { id: string } }) {
 
   const { selectedTeamId, selectedAgentId, selectedInstanceId } = useTeamStore()
 
-  console.log("selectedTeamId", selectedTeamId)
-  console.log("selectedAgentId", selectedAgentId)
-  console.log("selectedInstanceId", selectedInstanceId)
-
   useEffect(() => {
     if (session?.user) {
       // Substitua estes valores pelos seus reais vindos da sessão ou configuração
@@ -122,11 +118,7 @@ export default function AgentDetails({ params }: { params: { id: string } }) {
           className="max-w-[100vw] md:w-full pt-6 md:pt-8"
           value="chat"
         >
-          <ChatLayout
-          // instanceId="b3d522d4-8708-48c9-b55d-6bbc93531fff"
-          // teamId="cm578za6z0008q3a8fufu6y1j"
-          // agentId="gsk_2IszyB5xTBVJjWpJEiGSWGdyb3FYLsHPYRYHqSKjQaoKuJ1Jz9I41b9oub1g"
-          />
+          <ChatLayout />
         </TabsContent>
         <TabsContent className="w-full pt-6 md:pt-8" value="model">
           <ModelAgents />
