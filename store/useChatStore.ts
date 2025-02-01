@@ -25,7 +25,7 @@ interface ChatStore {
   setIsLoading: (loading: boolean) => void
   setNewMessage: (message: string) => void
   handleAIResponse: (clientMessageText: string, agentId: string) => Promise<void>
-  sendManualMessage: (text: string, phoneNumber: string) => Promise<void>
+  sendManualMessage: (text: string, phoneNumber: string, instanceName: string) => Promise<void>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   formatMessage: (messageData: any) => Message
 
@@ -229,24 +229,65 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }
   },
 
-  sendManualMessage: async (text: string, phoneNumber: string) => {
+  sendManualMessage: async (text: string, phoneNumber: string, instanceName: string) => {
     if (!text.trim() || !phoneNumber) return
+
+    console.log("Instance name", instanceName)
     
     set({ isLoading: true })
     
     try {
-      const message = get().formatMessage({
-        id: Date.now().toString(),
+      const localMessage = {
+        id: `temp-${Date.now()}`,
         text,
-        sender: "ai",
+        sender: "ai", // Mudado para "ai" para aparecer do lado correto
         timestamp: new Date().toISOString(),
+        messageTo: phoneNumber,
         conversationId: get().currentChatId,
+        instanceName: instanceName,
+        metadata: {
+          instanceName: instanceName,
+          phoneNumber: phoneNumber,
+          type: "manual"
+        }
+      }
+
+      // Adicionar mensagem localmente primeiro
+      get().addMessage(localMessage)
+      set({ newMessage: "" }) // Limpar input imediatamente
+
+      const dbResponse = await fetch('/api/messages/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text,
+          phoneNumber,
+          instanceName,
+          conversationId: get().currentChatId,
+          metadata: localMessage.metadata
+        }),
       })
 
-      get().addMessage(message)
+      const dbData = await dbResponse.json()
       
-      await fetch(
-        "https://evolution.rubnik.com/message/sendText/Rubnik",
+      if (!dbData.success) {
+        throw new Error('Failed to save message to database')
+      }
+
+      // const message = get().formatMessage({
+      //   id: Date.now().toString(),
+      //   text,
+      //   sender: "ai",
+      //   timestamp: new Date().toISOString(),
+      //   conversationId: get().currentChatId,
+      // })
+
+      // get().addMessage(message)
+      
+      const whatsappResponse = await fetch(
+        `https://evolution.rubnik.com/message/sendText/${instanceName}`,
         {
           method: "POST",
           headers: {
@@ -263,7 +304,35 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         }
       )
       
-      set({ newMessage: "" })
+      const whatsappData = await whatsappResponse.json()
+      // Atualizar a mensagem local com os IDs do servidor
+      if (whatsappData.id && dbData.message.id) {
+        set(state => ({
+          messages: state.messages.map(msg => 
+            msg.id === localMessage.id ? { 
+              ...msg, 
+              id: dbData.message.id,
+              metadata: {
+                ...msg.metadata,
+                whatsappMessageId: whatsappData.id
+              }
+            } : msg
+          ),
+          messageHistory: {
+            ...state.messageHistory,
+            [get().currentChatId!]: state.messageHistory[get().currentChatId!]?.map(msg =>
+              msg.id === localMessage.id ? {
+                ...msg,
+                id: dbData.message.id,
+                metadata: {
+                  ...msg.metadata,
+                  whatsappMessageId: whatsappData.id
+                }
+              } : msg
+            ) || []
+          }
+        }))
+      }
     } catch (error) {
       console.error("Erro ao enviar mensagem manual:", error)
     } finally {
