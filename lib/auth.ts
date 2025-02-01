@@ -3,7 +3,6 @@ import { AuthOptions } from "next-auth";
 import { db } from "./db";
 import EmailProvider from "next-auth/providers/email";
 import { Adapter } from "next-auth/adapters";
-import { createStripeCustomer } from "@/services/stripe/stripe";
 import nodemailer from "nodemailer";
 
 export const authOptions: AuthOptions = {
@@ -19,10 +18,15 @@ export const authOptions: AuthOptions = {
         EmailProvider({
             server: {
                 host: process.env.EMAIL_SERVER_HOST,
-                port: parseInt(process.env.EMAIL_SERVER_PORT as string, 10),
+                port: Number(process.env.EMAIL_SERVER_PORT),
                 auth: {
                     user: process.env.EMAIL_SERVER_USER,
                     pass: process.env.EMAIL_SERVER_PASSWORD
+                },
+                secure: false,
+                requireTLS: true,
+                tls: {
+                    rejectUnauthorized: false
                 }
             },
             from: process.env.EMAIL_FROM,
@@ -50,24 +54,28 @@ export const authOptions: AuthOptions = {
         })
     ],
     callbacks: {
-        async session({session, user}) {
-            session.user = {
-                ...session.user,
-                id: user.id
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } as any
+    async session({session, user}) {
+        const dbUser = await db.user.findUnique({
+            where: { id: user.id },
+            select: {
+                id: true,
+                planId: true,
+                trialStartDate: true,
+                trialEndDate: true,
+            }
+        });
 
-            return session
-        }
-    },
-    events: {
-        createUser: async (message) => {
-            await createStripeCustomer({
-                name: message.user.name as string, 
-                email: message.user.email as string,
-            })
-        }
+        session.user = {
+            ...session.user,
+            id: user.id,
+            planId: dbUser?.planId,
+            trialStartDate: dbUser?.trialStartDate,
+            trialEndDate: dbUser?.trialEndDate
+        } as any;
+
+        return session;
     }
+    },
 }
 
 // Função para gerar o texto plano do email
