@@ -1,7 +1,7 @@
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { getPlanByPrice } from "@/services/stripe/stripe";
 import { getServerSession } from "next-auth";
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -18,7 +18,6 @@ export async function POST(req: Request) {
     }
 
     try{
-
         //Busca o usuário logado
         const user = await db.user.findUnique({
             where: {
@@ -26,22 +25,17 @@ export async function POST(req: Request) {
             },
         })
 
-        if (!user || !user.stripePriceId) {
-            return NextResponse.json({ error: "Plano do usuário não encontrado" }, { status: 403 });
+        if (!user) {
+            return NextResponse.json({ error: "Usuário não encontrado!" }, { status: 403 });
         }
-
-        // Obtém o plano com base no priceId do Stripe
-        const userPlan = getPlanByPrice(user.stripePriceId);
 
         const teamCount = await db.team.count({
             where: { ownerId: user.id },
         });
 
-        if (teamCount >= userPlan.quota.teams) {
-            return NextResponse.json({ error: "Limite de equipes atingido para o seu plano" }, { status: 403 });
+        if (teamCount >= 1) {
+            return NextResponse.json({ error: "Limite de equipes atingido." }, { status: 403 });
         }
-
-        console.log(name, description)
 
         const newTeam = await db.team.create({
             data: {
@@ -62,6 +56,8 @@ export async function POST(req: Request) {
             where: { id: user.id },
             data: { totalTeams: { increment: 1 } },
         });
+
+        revalidatePath("/config/team")
 
         return NextResponse.json(newTeam, {status: 201})
     }catch(error){
