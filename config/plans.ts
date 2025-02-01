@@ -6,7 +6,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       name: 'Plano Mensal',
       description: 'Acesso a todos os recursos com cobrança mensal',
       // priceId: 'price_1Qkax9DgEDIMcktiEJCV6vqO',
-      priceId: 'price_1QnmyvDgEDIMckti7MPC62lw',
+      priceId: 'price_1QnoTtDgEDIMcktiNylA1Xeg',
       price: 49.90,
       interval: 'month',
       limits: {
@@ -21,7 +21,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       name: 'Plano Anual',
       description: 'Economize 20% com cobrança anual',
       // priceId: 'price_1Qkb8GDgEDIMckti0gtjRUgf',
-      priceId: 'price_1QnnVUDgEDIMckti9pOZC5bh',
+      priceId: 'price_1Qkb8GDgEDIMckti0gtjRUgf',
       price: 499.00,
       interval: 'year',
       limits: {
