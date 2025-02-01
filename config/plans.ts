@@ -21,7 +21,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       name: 'Plano Anual',
       description: 'Economize 20% com cobrança anual',
       // priceId: 'price_1Qkb8GDgEDIMckti0gtjRUgf',
-      priceId: 'price_1QnmzJDgEDIMcktiRxJ7CfV3',
+      priceId: 'price_1QnnVUDgEDIMckti9pOZC5bh',
       price: 499.00,
       interval: 'year',
       limits: {
