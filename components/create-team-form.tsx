@@ -3,14 +3,17 @@
 import { Button } from "./ui/button"
 import { Label } from "./ui/label"
 import { Input } from "./ui/input"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useToast } from "@/hooks/use-toast"
+import { CountTeamUser } from "@/app/_actions/count-team"
+import { useRouter } from "next/navigation"
 
 export default function CreateTeamFrom() {
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [isCreating, setIsCreating] = useState(false)
-
+  const [countTeam, setCountTeam] = useState<number>(0)
+  const router = useRouter()
   const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,10 +44,12 @@ export default function CreateTeamFrom() {
         })
         setName("")
         setDescription("")
-        // Opcional: atualizar o estado da aplicação para refletir a nova equipe
+        const newCount = await CountTeamUser()
+        setCountTeam(newCount!)
+        router.refresh()
       } else {
         toast({
-          title: "Erro ao criar membro",
+          title: "Erro ao criar equipe",
           description: data.error,
           variant: "destructive",
         })
@@ -84,7 +89,7 @@ export default function CreateTeamFrom() {
 
       <Button
         type="submit"
-        disabled={isCreating || !name}
+        disabled={isCreating || !name || countTeam >= 1}
         className="items-end hover:bg-blue-500 transition-all dark:text-neutral-900 hover:dark:text-white  duration-200 ease-in-out"
       >
         {isCreating ? "Criando..." : "Criar Equipe"}
