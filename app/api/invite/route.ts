@@ -2,7 +2,6 @@ import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { createInviteEmailHtml } from "@/lib/invite-email"
 import { transporter } from "@/lib/mail"
-import { getPlanByPrice } from "@/services/stripe/stripe"
 import { getServerSession } from "next-auth"
 import { NextResponse } from "next/server"
 
@@ -27,16 +26,16 @@ export async function POST(req: Request) {
             },
         })
 
-        const userPlan = getPlanByPrice(userLoggedIn?.stripePriceId as string);
-        const membersCount = await db.teamMember.count({
-            where: { teamId: selectedTemId },
-        });
+        // const userPlan = getPlanByPrice(userLoggedIn?.stripePriceId as string);
+        // const membersCount = await db.teamMember.count({
+        //     where: { teamId: selectedTemId },
+        // });
 
-        if (membersCount >= userPlan.quota.members) {
-            return NextResponse.json({ 
-                error: "Limite de membros por equipe atingido para o seu plano" 
-            }, { status: 403 });
-        }
+        // if (membersCount >= userPlan.quota.members) {
+        //     return NextResponse.json({ 
+        //         error: "Limite de membros por equipe atingido para o seu plano" 
+        //     }, { status: 403 });
+        // }
 
         const existingMember = await db.teamMember.findUnique({
             where: {
