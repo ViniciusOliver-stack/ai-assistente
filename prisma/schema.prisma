@@ -38,6 +38,8 @@ model User {
   stripeSubscriptionId     String?
   stripeSubscriptionStatus String?
   stripePriceId            String?
+  trialStartDate           DateTime?
+  trialEndDate             DateTime?
 }
 
 model Account {
@@ -153,6 +155,7 @@ model Agent {
 
 model Plan {
   id                String   @id @default(cuid())
+  stripePriceId     String?  @unique // Novo campo para ID do preço no Stripe
   name              String   @unique
   maxTeams          Int //Quantidade máxima de equipes
   maxMembersPerTeam Int //Quantidade máxima de membros por equipe
@@ -273,4 +276,14 @@ model Message {
   metadata       Json?
 
   @@index([conversationId, timestamp])
+}
+
+model Memory {
+  id           String   @id @default(cuid())
+  content      String
+  instanceName String
+  userId       String
+  createdAt    DateTime @default(now())
+
+  @@index([instanceName, userId])
 }
