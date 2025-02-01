@@ -1,7 +1,7 @@
 // app/agents/new/page.tsx
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { ArrowLeftIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -24,6 +24,21 @@ export default function NewAgents() {
     title: "",
     description: "",
   })
+  const [agentCount, setAgentCount] = useState(0)
+
+  useEffect(() => {
+    const checkAgentLimit = async () => {
+      if (selectedTeamId) {
+        const response = await fetch(
+          `/api/agents/count?teamId=${selectedTeamId}`
+        )
+        const { count } = await response.json()
+        setAgentCount(count)
+      }
+    }
+
+    checkAgentLimit()
+  }, [selectedTeamId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,11 +69,11 @@ export default function NewAgents() {
       } else {
         throw new Error(result.error)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log(error)
       toast({
         title: "Erro ao criar agente",
-        description: "Ocorreu um erro ao criar o agente. Tente novamente.",
+        description: error.message || "Ocorreu um erro desconhecido",
         variant: "destructive",
       })
     } finally {
@@ -126,7 +141,11 @@ export default function NewAgents() {
           </div>
 
           <div className="flex gap-4">
-            <Button type="submit" className="w-32" disabled={isLoading}>
+            <Button
+              type="submit"
+              className="w-32"
+              disabled={isLoading || agentCount >= 1}
+            >
               {isLoading ? "Criando..." : "Criar Agente"}
             </Button>
 
