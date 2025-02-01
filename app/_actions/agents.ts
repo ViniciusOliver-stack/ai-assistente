@@ -11,6 +11,22 @@ interface CreateAgentData {
 
 export async function createAgent(data: CreateAgentData) {
   try {
+
+    console.log("Dados recebidos:", data)
+
+    // Verificar se já existe um agente na equipe
+    const existingAgents = await db.agent.count({
+      where: {
+        teamId: data.teamId
+      }
+    });
+
+    console.log("Número de agentes existentes:", existingAgents);
+    
+    if (existingAgents >= 1) {
+      throw new Error("Você atingiu o limite máximo de agentes por equipe");
+    }
+
     const agent = await db.agent.create({
       data: {
         title: data.title,
@@ -20,13 +36,16 @@ export async function createAgent(data: CreateAgentData) {
             id: data.teamId
           }
         },
-        provider: "GROQ", // valor padrão
+        provider: "OPENAI", // valor padrão
       }
     })
     
     return { success: true, data: agent }
-  } catch (error) {
-    console.error("Erro ao criar agente:", error)
-    return { success: false, error: "Erro ao criar agente" }
+  } catch (error: any) {
+    console.error("Erro ao criar agente:", error);
+    return { 
+      success: false, 
+      error: error.message || "Erro ao criar agente" 
+    }
   }
 }
