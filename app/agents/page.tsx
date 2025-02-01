@@ -8,10 +8,11 @@ import Title from "@/components/ui/title"
 import Link from "next/link"
 import React from "react"
 import { BoltIcon } from "lucide-react"
-import { Spinner } from "@/components/ui/spinner"
 import { Button } from "@/components/ui/button"
 import { TextLoader } from "@/components/ui/loading-text"
 import { CountAgents } from "../_actions/cout-agents"
+import { useRouter } from "next/navigation"
+import { useTrialStore } from "@/store/use-trial-store"
 
 export type Agent = {
   id: string
@@ -32,6 +33,10 @@ export default function Agents() {
   const [isLoading, setIsLoading] = useState(true)
   const [agents, setAgents] = useState<Agent[]>([])
   const [agentCount, setAgentCount] = useState(0)
+  const [hasActiveSub, setHasActiveSub] = useState(true)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const { isTrialExpired } = useTrialStore()
 
   useEffect(() => {
     const fetchUserTeams = async () => {
@@ -54,6 +59,28 @@ export default function Agents() {
     }
     fetchUserTeams()
   }, [selectedTeamId]) //Se colocar agents como dependência, é feito várias chamadas
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const res = await fetch("/api/user/subscription-status")
+        const data = await res.json()
+        console.log(data.isActive)
+        setHasActiveSub(data.isActive)
+      } catch (error) {
+        console.error("Error checking access:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    checkAccess()
+  }, [router])
+
+  // Não mostra a navegação se o trial não foi iniciado ou expirou
+  if (!hasActiveSub && isTrialExpired) {
+    router.push("/dashboard")
+  }
 
   if (isLoading) {
     return (

@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
 export default function BillingPage() {
-  const { isTrialExpired } = useTrialStore()
+  const { isTrialExpired, isTrialStarted } = useTrialStore()
   const [hasActiveSub, setHasActiveSub] = useState(false)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
@@ -42,7 +42,7 @@ export default function BillingPage() {
     )
 
   // Não mostra a navegação se o trial não foi iniciado ou expirou
-  if (!hasActiveSub && isTrialExpired) {
+  if (!isTrialStarted && !hasActiveSub && isTrialExpired) {
     router.push("/dashboard")
   }
 

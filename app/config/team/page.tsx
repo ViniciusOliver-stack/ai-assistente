@@ -44,7 +44,7 @@ export default function TeamPage() {
     )
 
   // Não mostra a navegação se o trial não foi iniciado ou expirou
-  if (!hasActiveSub && isTrialExpired) {
+  if ((!isTrialStarted || isTrialExpired) && !hasActiveSub) {
     router.push("/dashboard")
   }
 

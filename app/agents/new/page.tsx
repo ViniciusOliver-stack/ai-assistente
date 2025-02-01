@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { ArrowLeftIcon } from "lucide-react"
+import { ArrowLeftIcon, ArrowUpRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 import useTeamStore from "@/store/team-store"
 
@@ -14,17 +14,21 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { createAgent } from "@/app/_actions/agents"
+import { useTrialStore } from "@/store/use-trial-store"
 
 export default function NewAgents() {
   const router = useRouter()
   const { toast } = useToast()
   const { selectedTeamId } = useTeamStore()
   const [isLoading, setIsLoading] = useState(false)
+  const [hasActiveSub, setHasActiveSub] = useState(true)
+  const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState({
     title: "",
     description: "",
   })
   const [agentCount, setAgentCount] = useState(0)
+  const { isTrialExpired } = useTrialStore()
 
   useEffect(() => {
     const checkAgentLimit = async () => {
@@ -81,12 +85,40 @@ export default function NewAgents() {
     }
   }
 
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const res = await fetch("/api/user/subscription-status")
+        const data = await res.json()
+        setHasActiveSub(data.isActive)
+      } catch (error) {
+        console.error("Error checking access:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    checkAccess()
+  }, [router])
+
+  // Não mostra a navegação se o trial não foi iniciado ou expirou
+  if (!hasActiveSub && isTrialExpired) {
+    router.push("/dashboard")
+  }
+
   if (!selectedTeamId) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex flex-col items-center justify-center h-full">
         <p className="text-muted-foreground">
-          Selecione uma equipe para criar um novo agente
+          Selecione uma equipe para criar um novo agente.
         </p>
+        <Link
+          href="/config/team"
+          className="hover:text-blue-500 flex items-center gap-1 text-muted-foreground underline"
+        >
+          Desejo criar minha equipe
+          <ArrowUpRight size={16} />
+        </Link>
       </div>
     )
   }

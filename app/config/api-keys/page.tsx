@@ -24,12 +24,12 @@ export default function ApiKeysPage() {
   const [isSaving, setIsSaving] = useState<Record<string, boolean>>({})
   const [editableKeys, setEditableKeys] = useState<Record<string, string>>({})
   const [isEditing, setIsEditing] = useState<Record<string, boolean>>({})
-  const [hasActiveSub, setHasActiveSub] = useState(false)
+  const [hasActiveSub, setHasActiveSub] = useState(true)
   const [loading, setLoading] = useState(true)
   const selectedTeamId = useTeamStore((state) => state.selectedTeamId)
   const { toast } = useToast()
 
-  const { isTrialExpired, checkTrialStatus } = useTrialStore()
+  const { isTrialExpired, isTrialStarted, checkTrialStatus } = useTrialStore()
   const router = useRouter()
 
   useEffect(() => {
@@ -41,27 +41,6 @@ export default function ApiKeysPage() {
       fetchApiKeys()
     }
   }, [selectedTeamId])
-
-  useEffect(() => {
-    const checkAccess = async () => {
-      try {
-        const res = await fetch("/api/user/subscription-status")
-        const { isActive } = await res.json()
-        setHasActiveSub(isActive)
-      } catch (error) {
-        console.error("Error checking access:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    checkAccess()
-  }, [router])
-
-  // Não mostra a navegação se o trial não foi iniciado ou expirou
-  if (!hasActiveSub && isTrialExpired) {
-    router.push("/dashboard")
-  }
 
   const fetchApiKeys = async () => {
     try {
@@ -157,6 +136,27 @@ export default function ApiKeysPage() {
     } finally {
       setIsSaving({ ...isSaving, [provider]: false })
     }
+  }
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const res = await fetch("/api/user/subscription-status")
+        const data = await res.json()
+        setHasActiveSub(data.isActive)
+      } catch (error) {
+        console.error("Error checking access:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    checkAccess()
+  }, [router])
+
+  // Não mostra a navegação se o trial não foi iniciado ou expirou
+  if ((!isTrialStarted || isTrialExpired) && !hasActiveSub) {
+    router.push("/dashboard")
   }
 
   const renderApiKeySection = (provider: string, logoSrc: string) => {

@@ -19,6 +19,8 @@ import { useEffect, useState } from "react"
 import { useChatListStore } from "@/store/useChatListStore"
 import { useSession } from "next-auth/react"
 import useTeamStore from "@/store/team-store"
+import { useRouter } from "next/navigation"
+import { useTrialStore } from "@/store/use-trial-store"
 
 const tabTitles = {
   panel: {
@@ -50,6 +52,10 @@ export default function AgentDetails({ params }: { params: { id: string } }) {
   const [activeTab, setActiveTab] = useState<TabType>("panel")
   const { data: session } = useSession()
   const { fetchChats, error } = useChatListStore()
+  const [hasActiveSub, setHasActiveSub] = useState(true)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const { isTrialExpired } = useTrialStore()
 
   const { selectedTeamId, selectedAgentId, selectedInstanceId } = useTeamStore()
 
@@ -70,6 +76,28 @@ export default function AgentDetails({ params }: { params: { id: string } }) {
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as TabType)
+  }
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const res = await fetch("/api/user/subscription-status")
+        const data = await res.json()
+        console.log(data.isActive)
+        setHasActiveSub(data.isActive)
+      } catch (error) {
+        console.error("Error checking access:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    checkAccess()
+  }, [router])
+
+  // Não mostra a navegação se o trial não foi iniciado ou expirou
+  if (!hasActiveSub && isTrialExpired) {
+    router.push("/dashboard")
   }
 
   return (

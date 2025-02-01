@@ -5,6 +5,8 @@ import { NextResponse } from "next/server"
 export async function GET() {
   try {
     const userData = await GetUser()
+    console.log(userData)
+
     return NextResponse.json({
       isActive: userData?.stripeSubscriptionStatus === 'active'
     })
