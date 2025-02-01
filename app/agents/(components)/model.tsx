@@ -10,6 +10,8 @@ import { ModelGroqCloud } from "./models/groqcloud"
 import { useEffect, useState } from "react"
 import useTeamStore from "@/store/team-store"
 import { getListModelsWithApiKey } from "@/app/_actions/get-list-models"
+import Link from "next/link"
+import { ArrowUpRight } from "lucide-react"
 
 interface ModelAvailable {
   provider: string
@@ -118,7 +120,15 @@ export function ModelAgents() {
           </TabsModels>
         </div>
       ) : (
-        <p>Nenhum modelo disponível.</p>
+        <div>
+          <p>Nenhum modelo disponível.</p>
+          <Link
+            href="/config/api-keys"
+            className="hover:text-blue-500 flex items-center gap-1"
+          >
+            Cadastrar chave <ArrowUpRight size={16} />
+          </Link>
+        </div>
       )}
     </section>
   )
