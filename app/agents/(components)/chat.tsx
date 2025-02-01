@@ -46,6 +46,8 @@ export default function ChatLayout() {
 
   const { selectedInstanceId } = useTeamStore()
 
+  // console.log("Selected Instance ID:", selectedInstanceId)
+
   const {
     messages,
     isLoading,
@@ -82,7 +84,7 @@ export default function ChatLayout() {
     const activeChatDetails = chats.find((chat) => chat.id === activeChat)
     const phoneNumber = activeChatDetails?.phoneNumber
     if (!phoneNumber) return
-    console.log("MENSAGENS: ", messages)
+    // console.log("MENSAGENS: ", messages)
 
     // Pega o histórico de mensagens do chat ativo
     const chatHistory = messageHistory[activeChat] || []
@@ -109,9 +111,9 @@ export default function ChatLayout() {
       (a, b) =>
         new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     )
-    console.log("Messages for instance", selectedInstanceId, sortedMessages)
+    // console.log("Messages for instance", selectedInstanceId, sortedMessages)
 
-    console.log("Mensagens combinadas:", sortedMessages)
+    // console.log("Mensagens combinadas:", sortedMessages)
 
     setCombinedMessages(sortedMessages)
   }, [activeChat, messages, messageHistory, chats])
@@ -183,7 +185,7 @@ export default function ChatLayout() {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault()
       if (activePhoneNumber) {
-        sendManualMessage(newMessage, activePhoneNumber)
+        sendManualMessage(newMessage, activePhoneNumber, selectedInstanceId!)
         setNewMessage("")
       }
     }
@@ -200,7 +202,11 @@ export default function ChatLayout() {
       return
     }
 
-    sendManualMessage(newMessage, activeChatDetails.phoneNumber)
+    sendManualMessage(
+      newMessage,
+      activeChatDetails.phoneNumber,
+      selectedInstanceId!
+    )
   }
 
   const renderers = {
@@ -282,7 +288,7 @@ export default function ChatLayout() {
   const handleDeleteChat = async () => {
     if (!activeChat) return
 
-    console.log("Chat ativo no momento", activeChat)
+    // console.log("Chat ativo no momento", activeChat)
 
     try {
       const result = await DeleteChat(activeChat)
@@ -320,11 +326,11 @@ export default function ChatLayout() {
 
     setIsClosing(true)
 
-    console.log("Initiating chat close for:", activeChat)
+    // console.log("Initiating chat close for:", activeChat)
 
     const result = await CloseChat(activeChat)
 
-    console.log("Close chat success response:", result)
+    // console.log("Close chat success response:", result)
 
     updateChatStatus(activeChat, "CLOSED")
 
@@ -347,8 +353,8 @@ export default function ChatLayout() {
   const renderAIToggleButton = (chatId: string) => {
     const isEnabled = isAIEnabledForChat(chatId)
 
-    console.log("Active CHAT", activeChat)
-    console.log("Chat ID", chatId)
+    // console.log("Active CHAT", activeChat)
+    // console.log("Chat ID", chatId)
 
     return (
       <Button
@@ -549,7 +555,7 @@ export default function ChatLayout() {
                 </div>
               ) : (
                 combinedMessages.map((message, index) => {
-                  // console.log("Rendering message:", message)
+                  // // console.log("Rendering message:", message)
                   const isAI = message.sender === "ai"
 
                   return (
