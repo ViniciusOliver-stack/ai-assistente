@@ -27,16 +27,16 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         messageData.metadata?.instance || messageData.instanceName
       const isValidInstance = messageInstance === selectedInstanceId
 
-      console.log("Message Validation:", {
-        messageInstance,
-        currentInstance: selectedInstanceId,
-        isValid: isValidInstance,
-        messageData: {
-          id: messageData.id,
-          sender: messageData.sender,
-          instance: messageInstance,
-        },
-      })
+      // console.log("Message Validation:", {
+      //   messageInstance,
+      //   currentInstance: selectedInstanceId,
+      //   isValid: isValidInstance,
+      //   messageData: {
+      //     id: messageData.id,
+      //     sender: messageData.sender,
+      //     instance: messageInstance,
+      //   },
+      // })
 
       return isValidInstance
     },
@@ -46,20 +46,20 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   const handleNewMessage = useCallback(
     (messageData: any) => {
       try {
-        console.log("Message DATA RECIPIENT: ")
-        console.log("Received new_message:", {
-          messageId: messageData.id,
-          instance: messageData.metadata?.instance,
-          currentInstance: selectedInstanceId,
-        })
+        // console.log("Message DATA RECIPIENT: ")
+        // console.log("Received new_message:", {
+        //   messageId: messageData.id,
+        //   instance: messageData.metadata?.instance,
+        //   currentInstance: selectedInstanceId,
+        // })
 
         if (!isMessageForCurrentInstance(messageData)) {
-          console.log("Message skipped - wrong instance")
+          // console.log("Message skipped - wrong instance")
           return
         }
 
         if (!messageData.sender && !isMessageForCurrentInstance(messageData)) {
-          console.log("Message skipped - no recipient")
+          // console.log("Message skipped - no recipient")
           return
         }
 
@@ -80,11 +80,11 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
           conversationId: messageData.conversationId,
         })
 
-        console.log("Processing message for instance:", {
-          instance: selectedInstanceId,
-          messageId: messageData.id,
-          sender: messageData.sender,
-        })
+        // console.log("Processing message for instance:", {
+        //   instance: selectedInstanceId,
+        //   messageId: messageData.id,
+        //   sender: messageData.sender,
+        // })
 
         addMessage(formattedMessage)
 
@@ -131,19 +131,19 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   const handleAIMessage = useCallback(
     (messageData: any) => {
       try {
-        console.log("Received new_message_ai:", {
-          messageId: messageData.id,
-          instance: messageData.instanceName,
-          currentInstance: selectedInstanceId,
-        })
+        // console.log("Received new_message_ai:", {
+        //   messageId: messageData.id,
+        //   instance: messageData.instanceName,
+        //   currentInstance: selectedInstanceId,
+        // })
 
         if (!isMessageForCurrentInstance(messageData)) {
-          console.log("AI Message skipped - wrong instance")
+          // console.log("AI Message skipped - wrong instance")
           return
         }
 
         if (!messageData.messageTo) {
-          console.log("AI Message skipped - no recipient")
+          // console.log("AI Message skipped - no recipient")
           return
         }
 
@@ -164,13 +164,13 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
           conversationId: messageData.conversationId,
         })
 
-        console.log("Processing AI message for instance:", {
-          instance: selectedInstanceId,
-          messageId: messageData.id,
-          recipient: messageData.messageTo,
-        })
+        // console.log("Processing AI message for instance:", {
+        //   instance: selectedInstanceId,
+        //   messageId: messageData.id,
+        //   recipient: messageData.messageTo,
+        // })
 
-        console.log("AI MESSAGE DATA RECEIVED: ", formattedMessage)
+        // console.log("AI MESSAGE DATA RECEIVED: ", formattedMessage)
 
         addMessage(formattedMessage)
 
@@ -222,14 +222,17 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       return
     }
 
-    socketRef.current = io("http://localhost:3001", {
-      transports: ["websocket"],
-      query: {
-        selectedInstanceId,
-        selectedTeamId,
-        selectedAgentId,
-      },
-    })
+    socketRef.current = io(
+      "https://assistent-ai-nodejs.3g77fw.easypanel.host/:3001",
+      {
+        transports: ["websocket"],
+        query: {
+          selectedInstanceId,
+          selectedTeamId,
+          selectedAgentId,
+        },
+      }
+    )
 
     socketRef.current.on("connect", () => {
       console.log("WebSocket Connected:", {

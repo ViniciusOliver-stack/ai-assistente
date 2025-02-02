@@ -49,7 +49,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         messageData.metadata.instance || messageData.metadata.instanceName
       const isValidInstance = messageInstance === selectedInstanceId
 
-      console.log("isMessageForCurrentInstance", isValidInstance)
+      // console.log("isMessageForCurrentInstance", isValidInstance)
 
       return isValidInstance
     },
@@ -71,7 +71,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       // Add message ID to processed set
       processedMessageIds.current.add(messageData.id)
 
-      console.log("Processing message:", messageData)
+      // console.log("Processing message:", messageData)
 
       // Ensure the message has a conversationId
       const messageWithConversationId = {
@@ -119,17 +119,20 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   )
 
   useEffect(() => {
-    socketRef.current = io("http://localhost:3001", {
-      transports: ["websocket"],
-      query: {
-        selectedInstanceId,
-        selectedTeamId,
-        selectedAgentId,
-      },
-    })
+    socketRef.current = io(
+      "https://assistent-ai-nodejs.3g77fw.easypanel.host/:3001",
+      {
+        transports: ["websocket"],
+        query: {
+          selectedInstanceId,
+          selectedTeamId,
+          selectedAgentId,
+        },
+      }
+    )
 
     socketRef.current.on("connect", () => {
-      console.log("WebSocket Connected")
+      // console.log("WebSocket Connected")
 
       // Join instance-specific room
       socketRef.current?.emit("join_instance", {
@@ -140,7 +143,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     })
 
     socketRef.current.on("disconnect", () => {
-      console.log("WebSocket Disconnected")
+      // console.log("WebSocket Disconnected")
     })
 
     socketRef.current.on("new_message", (message) => {
@@ -152,7 +155,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     })
 
     return () => {
-      console.log("Cleaning up WebSocket connection")
+      // console.log("Cleaning up WebSocket connection")
       if (socketRef.current) {
         socketRef.current.emit("leave_instance", {
           selectedInstanceId,
