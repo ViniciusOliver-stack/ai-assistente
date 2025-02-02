@@ -74,7 +74,6 @@ export default function NewAgents() {
         throw new Error(result.error)
       }
     } catch (error: any) {
-      console.log(error)
       toast({
         title: "Erro ao criar agente",
         description: error.message || "Ocorreu um erro desconhecido",

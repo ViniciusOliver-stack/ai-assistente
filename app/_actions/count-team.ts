@@ -8,7 +8,6 @@ export async function CountTeamUser() {
     const session = await getServerSession(authOptions)
 
     if(!session?.user) {
-        console.log("Usuário não autenticado")
         return
     }
 

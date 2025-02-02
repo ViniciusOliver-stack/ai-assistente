@@ -137,8 +137,6 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         conversationId: msg.conversationId || chatId
       }));
 
-      console.log('Formatted Messages:', formattedMessages);
-      
       set((state) => ({
         messages: loadMore ? [...formattedMessages, ...state.messages] : formattedMessages,
         hasMore: data.hasMore,
@@ -232,8 +230,6 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   sendManualMessage: async (text: string, phoneNumber: string, instanceName: string) => {
     if (!text.trim() || !phoneNumber) return
 
-    console.log("Instance name", instanceName)
-    
     set({ isLoading: true })
     
     try {

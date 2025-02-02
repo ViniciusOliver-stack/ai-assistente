@@ -46,9 +46,6 @@ export default function Agents() {
           const countResponse = await CountAgents(selectedTeamId)
           setAgents(listAgents)
           setAgentCount(countResponse!)
-          console.log(listAgents.length)
-        } else {
-          console.log("Selecione uma equipe")
         }
       } catch (error) {
         console.error(error)
@@ -65,7 +62,6 @@ export default function Agents() {
       try {
         const res = await fetch("/api/user/subscription-status")
         const data = await res.json()
-        console.log(data.isActive)
         setHasActiveSub(data.isActive)
       } catch (error) {
         console.error("Error checking access:", error)

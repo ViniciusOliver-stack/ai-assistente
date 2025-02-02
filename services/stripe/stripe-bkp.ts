@@ -3,8 +3,6 @@ import Stripe from "stripe"
 import { config } from "../config"
 import { db } from "@/lib/db"
 
-console.log(process.env.STRIPE_SECRET_KEY)
-
 export const stripe = new Stripe(config.stripe.secretKey || "", {
   apiVersion: '2024-09-30.acacia',
   httpClient: Stripe.createFetchHttpClient(),

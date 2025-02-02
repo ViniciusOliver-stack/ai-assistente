@@ -12,8 +12,6 @@ interface CreateAgentData {
 export async function createAgent(data: CreateAgentData) {
   try {
 
-    console.log("Dados recebidos:", data)
-
     // Verificar se já existe um agente na equipe
     const existingAgents = await db.agent.count({
       where: {
@@ -21,8 +19,6 @@ export async function createAgent(data: CreateAgentData) {
       }
     });
 
-    console.log("Número de agentes existentes:", existingAgents);
-    
     if (existingAgents >= 1) {
       throw new Error("Você atingiu o limite máximo de agentes por equipe");
     }

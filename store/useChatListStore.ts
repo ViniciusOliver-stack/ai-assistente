@@ -53,8 +53,6 @@ export const useChatListStore = create<ChatListStore>((set) => ({
       
       const chats = await response.json();
 
-      console.log("Chats", chats)
-
       const normalizedChats = chats.map((chat: Chat) => ({
         ...chat,
         phoneNumber: chat.name,
@@ -137,7 +135,6 @@ export const useChatListStore = create<ChatListStore>((set) => ({
           unreadCount: state.activeChat === updatedChats[chatIndex].id ? 
             0 : updatedChats[chatIndex].unreadCount + (isAI ? 0 : 1)
         };
-        console.log("updatedChats", updatedChats)
 
         return {
           chats: updatedChats.sort((a, b) => 

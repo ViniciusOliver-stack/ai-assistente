@@ -30,8 +30,6 @@ export default function TeamList() {
           setTeams(team)
           setMembersCount(membersCount)
           setMemberLimit(membersLimit)
-        } else {
-          console.log("Selecione uma equipe")
         }
       } catch (error) {
         console.error(error)

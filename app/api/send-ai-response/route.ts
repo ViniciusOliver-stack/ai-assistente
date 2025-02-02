@@ -48,7 +48,7 @@ export async function POST(req: Request) {
             }
         )
 
-        console.log("Mensagem enviada:", aiMessage);
+        // console.log("Mensagem enviada:", aiMessage);
 
         return NextResponse.json(aiMessage, { status: 201 });
     } catch (error) {

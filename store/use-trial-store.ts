@@ -33,7 +33,6 @@ export const useTrialStore = create<TrialState>()(
           isTrialExpired: (trialEnd ? new Date() > trialEnd : false)
         })
 
-        console.log('isTrialExpired', get().isTrialExpired)
       },
 
       startTrial: async () => {

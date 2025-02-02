@@ -8,12 +8,10 @@ export async function CountAgents(teamId: string) {
     const session = await getServerSession(authOptions)
 
     if(!session?.user) {
-        console.log("Usuário não autenticado")
         return
     }
 
     if(!teamId) {
-        console.log("TeamID não foi informado")
         return
     }
 

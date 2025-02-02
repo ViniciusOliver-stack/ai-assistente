@@ -12,8 +12,6 @@ export async function SaveApiKeys(selectedTeamId: string, provider: string, apiK
         throw new Error("Usuário não autenticado")
     }
     
-    console.log("Selected Team ID:", selectedTeamId);
-
     try {
         const newApiKey = await db.apiKey.create({
             data: {

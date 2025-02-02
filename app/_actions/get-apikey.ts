@@ -12,7 +12,6 @@ export async function getApiKeyByTeamAndProvider(teamId: string, provider: strin
         })
         return apiKey
     } catch (error) {
-        console.log("Erro ao buscar a chave de API:", error)
         return null
     }
 }

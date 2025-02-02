@@ -68,7 +68,7 @@ export async function POST(req: Request) {
 
           return NextResponse.json({ url: stripeSession.url });
     } catch(error) {
-        console.log("Internal Error: ", error);
+        // console.log("Internal Error: ", error);
         return new NextResponse('Internal Error', { status: 500 });
     }
 }

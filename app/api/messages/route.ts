@@ -33,9 +33,6 @@ export async function GET(req: NextRequest) {
         });
 
         if(!instance) {
-            // Log the actual values for debugging
-            console.log("Search params:", { instanceId, teamId, agentId });
-            
             // Check if instance exists with any of these parameters
             const possibleInstances = await db.whatsAppInstance.findMany({
                 where: {

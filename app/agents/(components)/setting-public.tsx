@@ -153,7 +153,7 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
   }, [teamId, agentId])
 
   const saveInstanceToDatabase = async (instanceData: WhatsAppInstance) => {
-    console.log("Instance DATA RECEBIDO: ", instanceData)
+    // console.log("Instance DATA RECEBIDO: ", instanceData)
     const response = await fetch("/api/whatsapp/instance", {
       method: "POST",
       headers: {
@@ -171,7 +171,7 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
       }),
     })
 
-    console.log("RESPONSE:", response)
+    // console.log("RESPONSE:", response)
 
     if (!response.ok) {
       throw new Error("Erro ao salvar instância no banco de dados")
@@ -202,10 +202,10 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
         (inst) => inst.name === instanceNameRef.current
       )
 
-      console.log("INSTANCES TARGET:", targetInstance)
+      // console.log("INSTANCES TARGET:", targetInstance)
 
       if (targetInstance) {
-        console.log("Entrou na instância")
+        // console.log("Entrou na instância")
         setInstance(targetInstance)
         await saveInstanceToDatabase(targetInstance)
 
@@ -236,8 +236,8 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
   }
 
   const handleDeleteInstance = async () => {
-    console.log("Deletando instância...")
-    console.log("Instance Name:", instance?.name)
+    // console.log("Deletando instância...")
+    // console.log("Instance Name:", instance?.name)
     try {
       // Disconnect Instance WhatsApp
       await fetch(
@@ -484,7 +484,7 @@ export default function SettingPublic({ teamId, agentId }: SettingPublicProps) {
     }
   }
 
-  // console.log("Instancia", instance)
+  // // console.log("Instancia", instance)
 
   return (
     <section className="">

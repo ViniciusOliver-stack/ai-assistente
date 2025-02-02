@@ -38,10 +38,6 @@ export async function GET(
       take: limit,
     })
 
-    console.log("CHAT ID: ", chatId)
-
-    console.log("Messages", messages)
-
     const formattedMessages = messages.map(message => ({
       id: message.id,
       text: message.text,

@@ -54,8 +54,6 @@ export default function Sidebar() {
     fetchTeams()
   }, [setSelectedTeamId])
 
-  console.log(teams)
-
   return (
     <aside className="w-64 shadow-md hidden md:flex px-3 py-5 flex-col justify-between">
       <div>

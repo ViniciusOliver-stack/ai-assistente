@@ -4,7 +4,7 @@ import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
 
 export async function CloseChat(conversationId: string) {
-  console.log("Starting closeChat action for conversationId:", conversationId)
+  // console.log("Starting closeChat action for conversationId:", conversationId)
   
   try {
     const updatedConversation = await db.conversation.update({
@@ -17,7 +17,7 @@ export async function CloseChat(conversationId: string) {
       },
     })
 
-    console.log("Chat closed successfully:", updatedConversation)
+    // console.log("Chat closed successfully:", updatedConversation)
     
     revalidatePath("/agents")
     return { 
