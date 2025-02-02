@@ -12,6 +12,8 @@ import { useTheme } from "next-themes"
 import { MoonIcon, SunIcon } from "lucide-react"
 import { Button } from "./ui/button"
 import { usePreventDevTools } from "@/hooks/user-prevent-dev-tools"
+import { SetupWizard } from "./setup-wizard"
+import { useTrialStore } from "@/store/use-trial-store"
 
 const loadSleekPlanWidget = () => {
   if (typeof window !== "undefined" && !window.$sleek) {
@@ -30,6 +32,29 @@ const ProtectedContent = ({ children }: { children: React.ReactNode }) => {
   const nomeUser = session?.user?.name?.split(" ")[0]
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const userId = session?.user?.id
+  const [needsSetup, setNeedsSetup] = useState(false)
+  const { isTrialStarted } = useTrialStore()
+
+  useEffect(() => {
+    const checkSetup = async () => {
+      try {
+        const res = await fetch(`/api/user/${userId}/setup-status`)
+        const data = await res.json()
+        setNeedsSetup(!data.setupCompleted)
+        setMounted(true)
+      } catch (error) {
+        console.error("Erro ao verificar status do setup:", error)
+        setMounted(true)
+      }
+    }
+
+    if (userId) {
+      checkSetup()
+    } else {
+      setMounted(true)
+    }
+  }, [userId, pathname])
 
   // Lista de rotas onde o widget NÃO deve aparecer
   const excludedRoutes = ["/", "/auth", "/_not-found"]
@@ -37,19 +62,22 @@ const ProtectedContent = ({ children }: { children: React.ReactNode }) => {
   usePreventDevTools()
 
   useEffect(() => {
-    setMounted(true)
     // Carrega o widget apenas se não estiver nas rotas excluídas
     if (!excludedRoutes.includes(pathname)) {
       loadSleekPlanWidget()
     }
   }, [pathname])
 
-  if (pathname === "/auth" || pathname === "/") {
-    return <>{children}</>
-  }
-
   if (!mounted) {
     return null
+  }
+
+  if (!excludedRoutes.includes(pathname) && needsSetup && isTrialStarted) {
+    return <SetupWizard />
+  }
+
+  if (pathname === "/auth" || pathname === "/") {
+    return <>{children}</>
   }
 
   return (
