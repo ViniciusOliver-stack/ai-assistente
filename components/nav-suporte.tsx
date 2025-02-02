@@ -47,9 +47,9 @@ export function NavMain() {
   return (
     <>
       <SidebarGroup className="mt-auto">
-        <SidebarGroupLabel>Ajuda</SidebarGroupLabel>
+        {/* <SidebarGroupLabel>Ajuda</SidebarGroupLabel> */}
         <SidebarMenu>
-          {navigationItems.map((item) => (
+          {/* {navigationItems.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
                 asChild
@@ -62,7 +62,7 @@ export function NavMain() {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-          ))}
+          ))} */}
           {trialStartDate && trialEndDate && !hasActiveSub && <TrialTimer />}
         </SidebarMenu>
       </SidebarGroup>
