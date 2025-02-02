@@ -26,7 +26,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       case "dark":
         return "/logo-white.svg"
       default:
-        return "/logo.svg"
+        return "/logo-white.svg"
     }
   }
 
