@@ -30,7 +30,7 @@ export function Footer() {
       <div className="flex w-full flex-wrap justify-between gap-8 px-6 py-12 md:px-0 border-y">
         <Image
           src="/logo-white.svg"
-          alt="GeniusXP"
+          alt="Rubnik"
           width={150}
           height={120}
           className="mb-auto"

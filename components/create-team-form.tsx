@@ -46,7 +46,9 @@ export default function CreateTeamFrom() {
         setDescription("")
         const newCount = await CountTeamUser()
         setCountTeam(newCount!)
+        // Força a atualização da página e recarrega os dados
         router.refresh()
+        window.location.reload()
       } else {
         toast({
           title: "Erro ao criar equipe",
