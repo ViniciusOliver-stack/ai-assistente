@@ -40,6 +40,8 @@ model User {
   stripePriceId            String?
   trialStartDate           DateTime?
   trialEndDate             DateTime?
+
+  setupCompleted Boolean @default(false)
 }
 
 model Account {
@@ -99,7 +101,7 @@ model Authenticator {
 
 model Team {
   id          String   @id @default(cuid())
-  name        String   @unique
+  name        String
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
