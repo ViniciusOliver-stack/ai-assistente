@@ -83,7 +83,6 @@ export default function AgentDetails({ params }: { params: { id: string } }) {
       try {
         const res = await fetch("/api/user/subscription-status")
         const data = await res.json()
-        console.log(data.isActive)
         setHasActiveSub(data.isActive)
       } catch (error) {
         console.error("Error checking access:", error)

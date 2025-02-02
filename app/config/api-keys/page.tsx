@@ -101,7 +101,7 @@ export default function ApiKeysPage() {
 
     try {
       const existingKey = apiKeys.find((key) => key.provider === provider)
-      console.log("Existing Key:", existingKey)
+      // console.log("Existing Key:", existingKey)
       const method = existingKey ? "PUT" : "POST"
       const url = existingKey ? `/api/keys/${existingKey.id}` : "/api/keys"
 

@@ -27,7 +27,6 @@ export async function DeleteChat(conversationId: string) {
 
         return {success: true}
     } catch (error) {
-        console.log("Error deleing chat: ", error)
         return {success: false, error: "Failed to delete chat"}
     }
 }
