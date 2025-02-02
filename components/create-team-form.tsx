@@ -3,7 +3,7 @@
 import { Button } from "./ui/button"
 import { Label } from "./ui/label"
 import { Input } from "./ui/input"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { CountTeamUser } from "@/app/_actions/count-team"
 import { useRouter } from "next/navigation"

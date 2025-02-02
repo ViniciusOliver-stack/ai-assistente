@@ -48,6 +48,7 @@ export function NavMain() {
     <>
       <SidebarGroup className="mt-auto">
         {/* <SidebarGroupLabel>Ajuda</SidebarGroupLabel> */}
+
         <SidebarMenu>
           {/* {navigationItems.map((item) => (
             <SidebarMenuItem key={item.title}>
