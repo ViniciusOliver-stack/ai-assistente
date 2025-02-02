@@ -10,7 +10,7 @@ import { useEffect, useState } from "react"
 // import TeamList from "@/components/team-list"
 
 export default function TeamPage() {
-  const { isTrialExpired, isTrialStarted, checkTrialStatus } = useTrialStore()
+  const { isTrialExpired, isTrialStarted } = useTrialStore()
   const [hasActiveSub, setHasActiveSub] = useState(false)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
