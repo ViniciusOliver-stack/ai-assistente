@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react"
 import { SessionProvider, useSession } from "next-auth/react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "./ui/sidebar"
 import { Separator } from "./ui/separator"
 import { AppSidebar } from "./ui/app-sidebar"
@@ -28,7 +28,8 @@ const loadSleekPlanWidget = () => {
 
 const ProtectedContent = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname()
-  const { data: session } = useSession()
+  const router = useRouter()
+  const { data: session, status } = useSession()
   const nomeUser = session?.user?.name?.split(" ")[0]
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
@@ -60,6 +61,23 @@ const ProtectedContent = ({ children }: { children: React.ReactNode }) => {
   const excludedRoutes = ["/", "/auth", "/_not-found"]
 
   usePreventDevTools()
+
+  useEffect(() => {
+    if (status === "loading") return
+
+    const authRoutes = ["/", "/auth"]
+    const isAuthRoute = authRoutes.includes(pathname)
+
+    // Usuário autenticado tentando acessar rota de auth
+    if (session?.user && isAuthRoute) {
+      router.push("/dashboard")
+    }
+
+    // Usuário não autenticado tentando acessar rota protegida
+    if (!session?.user && !isAuthRoute) {
+      router.push("/auth")
+    }
+  }, [status, session, pathname, router])
 
   useEffect(() => {
     // Carrega o widget apenas se não estiver nas rotas excluídas
