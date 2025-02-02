@@ -15,8 +15,10 @@ import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { createAgent } from "@/app/_actions/agents"
 import { useTrialStore } from "@/store/use-trial-store"
+import { useSession } from "next-auth/react"
 
 export default function NewAgents() {
+  const { update } = useSession()
   const router = useRouter()
   const { toast } = useToast()
   const { selectedTeamId } = useTeamStore()
@@ -69,7 +71,10 @@ export default function NewAgents() {
           title: "Agente criado com sucesso!",
           description: "Seu agente foi criado e está pronto para uso.",
         })
-        router.push("/agents")
+        // Força a atualização da página e recarrega os dados
+        update()
+        router.replace("/agents")
+        router.refresh()
       } else {
         throw new Error(result.error)
       }
